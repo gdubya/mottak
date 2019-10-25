@@ -13,4 +13,6 @@ COPY requirements.txt /opt
 WORKDIR /opt
 RUN pip install --no-cache-dir -r requirements.txt
 
-ENTRYPOINT /bin/sh
+
+# start up clamd and run the scanner
+ENTRYPOINT /usr/sbin/clamd && /opt/s3-avscan.py
