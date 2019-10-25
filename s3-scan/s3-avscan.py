@@ -1,4 +1,4 @@
-#!env python
+#!/usr/bin/env python3
 import os
 import sys
 import logging
@@ -27,7 +27,32 @@ def get_object(what, objectstore, bucket_name, object_name):
         return None
     return response[what]
 
+def verify_environment():
+    """Verify that the required environment variables are set
+    exits if is unhappy.
+    """
+    reqs = ['ENDPOINT', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'BUCKET', 'OBJECT']
+    for req in reqs:
+        if not os.getenv(req):
+            logging.error('Environment variable '+ req + ' is not set')
+            sys.exit(2)
+        
 
+def get_clam():
+    """Establish connection with Clamd
+    :return: pyclamd socket object
+    """
+    socket = os.getenv('CLAMD_SOCK')
+    csock = None
+    if not socket:
+        socket =  '/tmp/clamd.socket'
+    try:
+        csock = pyclamd.ClamdUnixSocket(socket)
+        csock.ping()
+    except Exception as e:
+        print("Failed to ping clamav deamon over socket:",os.getenv('CLAMD_SOCK') )
+        raise
+    return csock
 
 
 def get_s3_handle():
@@ -53,13 +78,15 @@ def get_s3_handle():
 
 
 def scan():
+    verify_environment()
     s3 = get_s3_handle()
     if s3 is None:
         logging.error("S3 client handle not defined")
         raise Exception('S3 client handle not defined')
     size = get_object('ContentLength', s3, os.getenv('BUCKET'), os.getenv('OBJECT'))
-
-    if (size > int(os.getenv('MAX_SCAN_SIZE'))):
+    max_size = int(os.getenv('MAX_SCAN_SIZE'));
+    if not max_size: max_size = 1024^3;
+    if (size > max_size):
         print("Not scanning as object is bigger than MAX_SCAN_SIZE")
         return None
     print('Scanning', os.getenv('OBJECT'), 'from', os.getenv('BUCKET'), ' Size: ', size)
@@ -67,12 +94,8 @@ def scan():
     if file_stream is None: 
         logging.error("Could not open file.")
         raise Exception('Could not get S3 object handle')
-    cd = pyclamd.ClamdUnixSocket(os.getenv('CLAMD_SOCK'))
-    try:
-        cd.ping()
-    except Exception as e:
-        print("Failed to ping clamav deamon over socket:",os.getenv('CLAMD_SOCK') )
-        raise
+
+    cd = get_clam()
     print(cd.version())
 
     result = cd.scan_stream(file_stream)
