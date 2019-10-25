@@ -10,6 +10,9 @@ from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 load_dotenv()
 
+# To enable debugging of the boto3 library uncomment this:
+# boto3.set_stream_logger('', logging.DEBUG)
+
 
 def get_object(what, objectstore, bucket_name, object_name):
     """Retrieve an object from an Amazon S3 bucket
@@ -27,16 +30,18 @@ def get_object(what, objectstore, bucket_name, object_name):
         return None
     return response[what]
 
+
 def verify_environment():
-    """Verify that the required environment variables are set
+    """Verify that the required environment variables are set.
     exits if is unhappy.
     """
-    reqs = ['ENDPOINT', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'BUCKET', 'OBJECT']
+    reqs = ['ENDPOINT', 'AWS_ACCESS_KEY_ID',
+            'AWS_SECRET_ACCESS_KEY', 'BUCKET', 'OBJECT']
     for req in reqs:
         if not os.getenv(req):
-            logging.error('Environment variable '+ req + ' is not set')
+            logging.error('Environment variable ' + req + ' is not set')
             sys.exit(2)
-        
+
 
 def get_clam():
     """Establish connection with Clamd
@@ -45,12 +50,12 @@ def get_clam():
     socket = os.getenv('CLAMD_SOCK')
     csock = None
     if not socket:
-        socket =  '/tmp/clamd.socket'
+        socket = '/tmp/clamd.socket'
     try:
         csock = pyclamd.ClamdUnixSocket(socket)
         csock.ping()
     except Exception as e:
-        print("Failed to ping clamav deamon over socket:",os.getenv('CLAMD_SOCK') )
+        print("Failed to ping clamav deamon over socket:", os.getenv('CLAMD_SOCK'))
         raise
     return csock
 
@@ -62,19 +67,19 @@ def get_s3_handle():
     """
 
     client_handle = None
-    
+
     try:
-        client_handle = boto3.client('s3', 
-                          endpoint_url=os.getenv('ENDPOINT'),
-                          aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
-                          aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY'),
-                          config=Config(signature_version='s3v4'),
-                          region_name=os.getenv('REGION_NAME'))
+        client_handle = boto3.client(service_name='s3',
+                                     endpoint_url=os.getenv('ENDPOINT'),
+                                     aws_access_key_id=os.getenv(
+                                         'AWS_ACCESS_KEY_ID'),
+                                     aws_secret_access_key=os.getenv(
+                                         'AWS_SECRET_ACCESS_KEY'),
+                                     region_name=os.getenv('REGION_NAME'))
     except Exception as e:
-        logging.error(e)
+        logging.error(e, stack_info=True)
         return None
     return client_handle
-
 
 
 def scan():
@@ -83,15 +88,19 @@ def scan():
     if s3 is None:
         logging.error("S3 client handle not defined")
         raise Exception('S3 client handle not defined')
-    size = get_object('ContentLength', s3, os.getenv('BUCKET'), os.getenv('OBJECT'))
-    max_size = int(os.getenv('MAX_SCAN_SIZE'));
-    if not max_size: max_size = 1024^3;
+    size = get_object('ContentLength', s3, os.getenv(
+        'BUCKET'), os.getenv('OBJECT'))
+    max_size = int(os.getenv('MAX_SCAN_SIZE'))
+    if not max_size:
+        max_size = 1024 ^ 3
     if (size > max_size):
         print("Not scanning as object is bigger than MAX_SCAN_SIZE")
         return None
-    print('Scanning', os.getenv('OBJECT'), 'from', os.getenv('BUCKET'), ' Size: ', size)
-    file_stream = get_object('Body', s3, os.getenv('BUCKET'), os.getenv('OBJECT'))
-    if file_stream is None: 
+    print('Scanning', os.getenv('OBJECT'), 'from',
+          os.getenv('BUCKET'), ' Size: ', size)
+    file_stream = get_object(
+        'Body', s3, os.getenv('BUCKET'), os.getenv('OBJECT'))
+    if file_stream is None:
         logging.error("Could not open file.")
         raise Exception('Could not get S3 object handle')
 
@@ -105,6 +114,7 @@ def scan():
     else:
         print("Virus found: ", result)
         return result
+
 
 if __name__ == '__main__':
     if scan():
