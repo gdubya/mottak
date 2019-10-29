@@ -50,7 +50,7 @@ def get_clam():
     socket = os.getenv('CLAMD_SOCK')
     csock = None
     if not socket:
-        socket = '/tmp/clamd.socket'
+        socket = '/var/run/clamav/clamd.sock'
     try:
         csock = pyclamd.ClamdUnixSocket(socket)
         csock.ping()
@@ -91,6 +91,7 @@ def scan():
     size = get_object('ContentLength', s3, os.getenv(
         'BUCKET'), os.getenv('OBJECT'))
     max_size = int(os.getenv('MAX_SCAN_SIZE'))
+    # Don't scan files larger than ... 1GB
     if not max_size:
         max_size = 1024 ^ 3
     if (size > max_size):
