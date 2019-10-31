@@ -81,7 +81,14 @@ def checksum():
 
     for byte_block in iter(lambda: file_stream.read(4096),b""):
         sha256_hash.update(byte_block)
+    with open("/tmp/result", "w") as res_file:
+        if (sha256_hash.hexdigest() == os.getenv('CHECKSUM')):
+            print("ok", file=res_file)
+        else:
+            print("fail")            
     print(sha256_hash.hexdigest())
+    
+
 
 if __name__ == '__main__':
     if checksum():
