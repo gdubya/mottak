@@ -1,0 +1,77 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: dag-diamond-
+spec:
+  entrypoint: diamond
+  templates:
+  - name: diamond
+    dag:
+      tasks:
+      - name: A
+        template: echo
+      - name: B
+        dependencies: [A]
+        template: echo-in-out
+        arguments:
+          parameters: 
+          - name: inmessage
+            value: "{{tasks.A.outputs.parameters.outmessage}}"
+      - name: C
+        dependencies: [A]
+        template: echo-in-out
+        arguments:
+          parameters: 
+          - name: inmessage
+            value: "{{tasks.A.outputs.parameters.outmessage}}"
+      - name: D
+        dependencies: [B, C]
+        template: echo-two-inputs
+        arguments:
+          parameters: 
+          - name: inmessage_one
+            value: "{{tasks.B.outputs.parameters.outmessage}}"
+          - name: inmessage_two
+            value: "{{tasks.C.outputs.parameters.outmessage}}"
+  - name: echo
+    container:
+      image: alpine
+      command: [sh, -c]
+      args:
+       - |
+         MSG=$(hostname)
+         echo $MSG > /tmp/outmessage
+         echo $MSG
+    outputs:
+      parameters:
+      - name: outmessage
+        valueFrom: 
+          path: /tmp/outmessage
+  - name: echo-in-out
+    container:
+      image: alpine
+      command: [sh, -c]
+      args:
+       - |
+         echo "{{inputs.parameters.inmessage}}:"$(hostname) > /tmp/outmessage
+         echo "Outmessage is {{inputs.parameters.inmessage}}:$(hostname)"
+    inputs:
+      parameters:
+      - name: inmessage
+    outputs:
+      parameters:
+      - name: outmessage
+        valueFrom: 
+          path: /tmp/outmessage
+  # The Echo 3 kontainers. Takes two inputs and spits out one output
+  - name: echo-two-inputs
+    inputs:
+      parameters:
+      - name: inmessage_one
+      - name: inmessage_two
+    container:
+      image: alpine
+      command: [sh, -c]
+      args:
+       - |
+        echo "({{inputs.parameters.inmessage_one}}/{{inputs.parameters.inmessage_two}}):$(hostname)"
