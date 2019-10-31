@@ -9,13 +9,12 @@ RUN mkdir -p /run/clamav && \
     chown clamav:clamav /run/clamav
 RUN mkdir -p /opt
 
-COPY s3-avscan.py /opt/s3-avscan.py
-COPY requirements.txt /opt
-WORKDIR /opt
+COPY start.sh /opt/
+COPY s3-avscan.py /opt/
+COPY requirements.txt /opt/
+WORKDIR /opt/
 RUN pip install --no-cache-dir -r requirements.txt
 
 
-# start up clamd and run the scanner
-ENTRYPOINT /usr/sbin/clamd && /opt/s3-avscan.py
-# When debugging set the entrypoint to the shell.
-# ENTRYPOINT /bin/sh 
+# start up clamd and run the scanner - can be overriden when debugging.
+CMD ["/opt/start.sh"]
