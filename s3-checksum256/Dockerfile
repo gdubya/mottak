@@ -7,7 +7,5 @@ WORKDIR /opt
 RUN pip install --no-cache-dir -r requirements.txt
 
 
-# start up clamd and run the scanner
-ENTRYPOINT /opt/s3-checksum256.py
-# When debugging set the entrypoint to the shell.
-# ENTRYPOINT /bin/sh 
+# run the scanner - can be overriden when debugging.
+CMD ["/opt/s3-checksum256.py"]
