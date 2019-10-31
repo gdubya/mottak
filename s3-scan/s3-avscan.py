@@ -83,6 +83,8 @@ def get_s3_handle():
 
 
 def scan():
+    msgs = [];
+
     verify_environment()
     s3 = get_s3_handle()
     if s3 is None:
@@ -90,15 +92,13 @@ def scan():
         raise Exception('S3 client handle not defined')
     size = get_object('ContentLength', s3, os.getenv(
         'BUCKET'), os.getenv('OBJECT'))
-    max_size = int(os.getenv('MAX_SCAN_SIZE'))
+    # max_size = int(os.getenv('MAX_SCAN_SIZE') or 1024^3)
     # Don't scan files larger than ... 1GB
-    if not max_size:
-        max_size = 1024 ^ 3
-    if (size > max_size):
-        print("Not scanning as object is bigger than MAX_SCAN_SIZE")
-        return None
-    print('Scanning', os.getenv('OBJECT'), 'from',
-          os.getenv('BUCKET'), ' Size: ', size)
+    #if not max_size:
+    #    max_size = 1024 ^ 3
+    #if (size > max_size):
+    #    msgs.append("Not scanning as object is bigger than MAX_SCAN_SIZE")
+    #    return None
     file_stream = get_object(
         'Body', s3, os.getenv('BUCKET'), os.getenv('OBJECT'))
     if file_stream is None:
@@ -106,15 +106,27 @@ def scan():
         raise Exception('Could not get S3 object handle')
 
     cd = get_clam()
-    print(cd.version())
-
+    version = cd.version()
     result = cd.scan_stream(file_stream)
-    if result is None:
-        print("No viruses found")
-        return None
-    else:
-        print("Virus found: ", result)
-        return result
+
+    with open("/tmp/av.log", "w") as log_file:
+        print("AV Scan", file=log_file)
+        print("Bucket:", os.getenv('BUCKET'), file=log_file)
+        print("Object:", os.getenv('OBJECT'), file=log_file)
+        print("Size:", size, file=log_file)
+        print("Version:", version, file=log_file)
+        print("Messages: ", "\n".join(msgs), file=log_file);
+        print("No virus found" if not result else result, file=log_file)
+
+    with open("/tmp/result", "w") as res_file:
+        if result is None:
+            print("clean", file=res_file)
+            print("No viruses found")
+            return None
+        else:
+            print("Virus found: ", result)
+            print(result, file=res_file);
+            return result
 
 
 if __name__ == '__main__':
