@@ -1,0 +1,75 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: mottak-dag-
+spec:
+  entrypoint: mottak
+  templates:
+  - name: mottak
+    dag:
+      tasks:
+        - name: kontroll
+          template: sjekksum-kontroll
+        - name: task-sjekksum-feil
+          template: sjekksum-feil
+          dependencies: [kontroll]
+          when: "'{{tasks.kontroll.outputs.parameters.mychecksum}}' != 'ok'"
+        - name: task-avscan
+          template: avscan
+          dependencies: [kontroll]
+          when: "'{{tasks.kontroll.outputs.parameters.mychecksum}}' == 'ok'"
+
+  - name: sjekksum-kontroll
+    container: 
+      image: perbu/sjekksum-kontroll
+      env:
+        - name: ENDPOINT
+          value:  '{{workflow.parameters.ENDPOINT}}'
+        - name: AWS_ACCESS_KEY_ID
+          value: '{{workflow.parameters.AWS_ACCESS_KEY_ID}}'
+        - name: AWS_SECRET_ACCESS_KEY
+          value: '{{workflow.parameters.AWS_SECRET_ACCESS_KEY}}'
+        - name: BUCKET
+          value:  '{{workflow.parameters.BUCKET}}'
+        - name: OBJECT
+          value: '{{workflow.parameters.OBJECT}}'
+        - name: CHECKSUM
+          value: '{{workflow.parameters.CHECKSUM}}'
+    outputs:
+      parameters:
+       - name: mychecksum
+         valueFrom:
+          path: /tmp/result
+        
+
+  - name: sjekksum-feil
+    container:
+      image: alpine:latest
+      command: [sh, -c]
+      args: ["echo \"Sjekksummen var HELT FEIL\""]
+
+
+  - name: avscan
+    container: 
+      image: perbu/avscan
+      env:
+        - name: ENDPOINT
+          value:  '{{workflow.parameters.ENDPOINT}}'
+        - name: AWS_ACCESS_KEY_ID
+          value: '{{workflow.parameters.AWS_ACCESS_KEY_ID}}'
+        - name: AWS_SECRET_ACCESS_KEY
+          value: '{{workflow.parameters.AWS_SECRET_ACCESS_KEY}}'
+        - name: BUCKET
+          value:  '{{workflow.parameters.BUCKET}}'
+        - name: OBJECT
+          value: '{{workflow.parameters.OBJECT}}'
+        - name: CHECKSUM
+          value: '{{workflow.parameters.CHECKSUM}}'
+    outputs:
+      parameters:
+       - name: av_verdict
+         valueFrom:
+           path: /tmp/result
+       - name: av_log
+         valueFrom:
+           path: /tmp/av.log
