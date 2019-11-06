@@ -19,7 +19,7 @@ data:
         endpoint: storage.googleapis.com
         accessKeySecret:
           name: s3-cred
-          key: accesskey
+          key: accessKeySecret
         secretKeySecret:
           name: s3-cred
-          key: secretkey
+          key: secretKeySecret
