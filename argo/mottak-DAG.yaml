@@ -6,6 +6,9 @@ spec:
   entrypoint: mottak
   templates:
   - name: mottak
+    # Enable workflow logging to artifacts stored in objectstore (doesn't seem to work)
+    archiveLocation:
+      archiveLogs: true
     dag:
       tasks:
         - name: kontroll
@@ -18,6 +21,9 @@ spec:
           template: avscan
           dependencies: [kontroll]
           when: "'{{tasks.kontroll.outputs.parameters.mychecksum}}' == 'ok'"
+        - name: task-arkade5
+          template: arkade5
+          dependencies: [task-avscan]
 
   - name: sjekksum-kontroll
     container: 
@@ -25,6 +31,8 @@ spec:
       env:
         - name: ENDPOINT
           value:  '{{workflow.parameters.ENDPOINT}}'
+        - name: REGION_NAME
+          value: 'us-east-1'
         - name: AWS_ACCESS_KEY_ID
           value: '{{workflow.parameters.AWS_ACCESS_KEY_ID}}'
         - name: AWS_SECRET_ACCESS_KEY
@@ -41,7 +49,8 @@ spec:
          valueFrom:
           path: /tmp/result
         
-
+  # Kontainer som avviser et arkiv.
+  # Her kan vi gjøre ting som å varsle arkivskaper om at jobben ikke avvist.
   - name: sjekksum-feil
     container:
       image: alpine:latest
@@ -55,6 +64,8 @@ spec:
       env:
         - name: ENDPOINT
           value:  '{{workflow.parameters.ENDPOINT}}'
+        - name: REGION_NAME
+          value: 'us-east-1'
         - name: AWS_ACCESS_KEY_ID
           value: '{{workflow.parameters.AWS_ACCESS_KEY_ID}}'
         - name: AWS_SECRET_ACCESS_KEY
@@ -73,3 +84,23 @@ spec:
        - name: av_log
          valueFrom:
            path: /tmp/av.log
+
+  - name: arkade5
+    container:
+      image: perbu/arkade5
+      env:
+        - name: ENDPOINT
+          value:  '{{workflow.parameters.ENDPOINT}}'
+        - name: REGION_NAME
+          value: 'us-east-1'
+        - name: AWS_ACCESS_KEY_ID
+          value: '{{workflow.parameters.AWS_ACCESS_KEY_ID}}'
+        - name: AWS_SECRET_ACCESS_KEY
+          value: '{{workflow.parameters.AWS_SECRET_ACCESS_KEY}}'
+        - name: BUCKET
+          value:  '{{workflow.parameters.BUCKET}}'
+        - name: OBJECT
+          value: '{{workflow.parameters.OBJECT}}'
+        - name: CHECKSUM
+          value: '{{workflow.parameters.CHECKSUM}}'
+    
