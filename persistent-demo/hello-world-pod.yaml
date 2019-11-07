@@ -1,0 +1,21 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  namespace: mottak
+  name: hello-world
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app:  hello-world
+    spec:
+      containers:
+      - name: hello-world-container
+        image: nginxdemos/hello
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+        - name: USEFUL
+          value: "true"  

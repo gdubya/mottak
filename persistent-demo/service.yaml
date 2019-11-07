@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: mottak
+  name:  hello-world
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80 # the container listens to port 80.
+  selector:
+    app:  hello-world
