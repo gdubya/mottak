@@ -1,20 +1,16 @@
-create table archive_types
+create table archive_id
 (
-    id          serial not null
+    id          serial       not null
         constraint archive_types_pk
             primary key,
-    type        text   not null,
-    description text
+    type        text         not null,
+    description text,
+    created_at  timestamp(0) not null,
+    updated_at  timestamp(0) not null
 );
 
-alter table archive_types
+alter table archive_id
     owner to postgres;
-
-create unique index archive_types_id_uindex
-    on archive_types (id);
-
-create unique index archive_types_type_uindex
-    on archive_types (type);
 
 create table invitations
 (
@@ -22,10 +18,14 @@ create table invitations
     creator_email text                  not null,
     uuid          uuid                  not null,
     sensitive     boolean default false not null,
-    archive_type  text                  not null,
+    archive_id    integer               not null
+        constraint invitations_archive_id_id_fk
+            references archive_id,
     id            serial                not null
         constraint invitations_pk
-            primary key
+            primary key,
+    created_at    timestamp(0)          not null,
+    updated_at    timestamp(0)          not null
 );
 
 alter table invitations
@@ -36,4 +36,10 @@ create unique index invitations_uuid_uindex
 
 create unique index invitations_id_uindex
     on invitations (id);
+
+create unique index archive_types_id_uindex
+    on archive_id (id);
+
+create unique index archive_types_type_uindex
+    on archive_id (type);
 
