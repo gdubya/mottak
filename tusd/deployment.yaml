@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tusd
+  namespace: argo
+spec:
+  containers:
+  - name: tusd
+    image: perbu/tusd:latest
+    ports:
+      - containerPort: 1080
+    volumeMounts:
+    - name: gcs
+      mountPath: "/etc/gcs"
+      readOnly: true
+  volumes:
+  - name: gcs
+    secret:
+      secretName: gcs-cred
