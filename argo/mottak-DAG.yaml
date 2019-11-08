@@ -11,23 +11,23 @@ spec:
       archiveLogs: true
     dag:
       tasks:
-        - name: kontroll
+        - name: task-kontroll
           template: sjekksum-kontroll
         - name: task-sjekksum-feil
           template: sjekksum-feil
-          dependencies: [kontroll]
-          when: "'{{tasks.kontroll.outputs.parameters.mychecksum}}' != 'ok'"
+          dependencies: [task-kontroll]
+          when: "'{{tasks.task-kontroll.outputs.parameters.checksum_result}}' != 'ok'"
         - name: task-avscan
           template: avscan
-          dependencies: [kontroll]
-          when: "'{{tasks.kontroll.outputs.parameters.mychecksum}}' == 'ok'"
+          dependencies: [task-kontroll]
+          when: "'{{tasks.task-kontroll.outputs.parameters.checksum_result}}' == 'ok'"
         - name: task-arkade5
           template: arkade5
           dependencies: [task-avscan]
 
   - name: sjekksum-kontroll
     container: 
-      image: perbu/sjekksum-kontroll
+      image: perbu/sjekksum-kontroll:latest
       env:
         - name: ENDPOINT
           value:  '{{workflow.parameters.ENDPOINT}}'
@@ -45,7 +45,7 @@ spec:
           value: '{{workflow.parameters.CHECKSUM}}'
     outputs:
       parameters:
-       - name: mychecksum
+       - name: checksum_result
          valueFrom:
           path: /tmp/result
         
@@ -60,7 +60,7 @@ spec:
 
   - name: avscan
     container: 
-      image: perbu/avscan
+      image: perbu/avscan:latest
       env:
         - name: ENDPOINT
           value:  '{{workflow.parameters.ENDPOINT}}'
@@ -81,13 +81,13 @@ spec:
        - name: av_verdict
          valueFrom:
            path: /tmp/result
-       - name: av_log
-         valueFrom:
-           path: /tmp/av.log
+      artifacts:
+        - name: avlog
+          path: /tmp/av.log
 
   - name: arkade5
     container:
-      image: perbu/arkade5
+      image: perbu/arkade5:latest
       env:
         - name: ENDPOINT
           value:  '{{workflow.parameters.ENDPOINT}}'
@@ -103,4 +103,10 @@ spec:
           value: '{{workflow.parameters.OBJECT}}'
         - name: CHECKSUM
           value: '{{workflow.parameters.CHECKSUM}}'
+        - name: ARCHIEVE_TYPE
+          value: '{{workflow.parameters.ARCHIEVE_TYPE}}'
+    outputs:
+      artifacts:
+        - name: arkade-report
+          path: /tmp/arkade.html
     
