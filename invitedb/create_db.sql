@@ -25,7 +25,8 @@ create table invitations
         constraint invitations_pk
             primary key,
     created_at    timestamp(0)          not null,
-    updated_at    timestamp(0)          not null
+    updated_at    timestamp(0)          not null,
+    checksum      text                  not null
 );
 
 alter table invitations
