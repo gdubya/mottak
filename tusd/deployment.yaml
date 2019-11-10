@@ -1,19 +1,31 @@
-apiVersion: v1
-kind: Pod
+apiVersion: extensions/v1beta1
+kind: Deployment
 metadata:
   name: tusd
   namespace: argo
+
 spec:
-  containers:
-  - name: tusd
-    image: perbu/tusd:latest
-    ports:
-      - containerPort: 1080
-    volumeMounts:
-    - name: gcs
-      mountPath: "/etc/gcs"
-      readOnly: true
-  volumes:
-  - name: gcs
-    secret:
-      secretName: gcs-cred
+  selector:
+    matchLabels:
+      run: tusd
+
+  template:
+    metadata:
+      labels:
+        run: tusd
+    spec:
+      containers:
+      - image: perbu/tusd:latest
+        imagePullPolicy: IfNotPresent
+        name: tusd
+        ports:
+        - containerPort: 1080
+          protocol: TCP
+        volumeMounts:
+          - name: gcs
+            mountPath: "/etc/gcs"
+            readOnly: true
+      volumes:
+       - name: gcs
+         secret:
+           secretName: gcs-cred
