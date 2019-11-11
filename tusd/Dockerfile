@@ -29,6 +29,6 @@ ENV GCS_SERVICE_ACCOUNT_FILE=/etc/gcs/gcs.json
 
 WORKDIR /srv/tusd-data
 EXPOSE 1080
-CMD ["tusd","--hooks-dir","/srv/tusd-hooks"]
+CMD ["tusd","-behind-proxy","-hooks-dir","/srv/tusd-hooks"]
 
 USER tusd

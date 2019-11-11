@@ -15,7 +15,7 @@ spec:
         run: tusd
     spec:
       containers:
-      - image: perbu/tusd:latest
+      - image: perbu/tusd:10
         imagePullPolicy: IfNotPresent
         name: tusd
         ports:
