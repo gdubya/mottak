@@ -32,7 +32,7 @@ For å feilsøke tusd kan det være greit å få seg et shell på tusd-poden. F�
 
 Det kan være hjelpsomt med en kontainer som inneholder en ubuntu-instans på innsiden i k8s-clusteret. For å kjøre opp dette kjør opp følgende: ```kubectl run my-shell --rm -i --tty --image ubuntu -- bash```. Husk å kjøpt ```apt update``` før du henter pakker med apt. Når du logges ut så slettes poden.
 
-##Todo:
+## Todo:
  - per idag så ligger disse binærene som binære filer som er ferdig kompilert. Det hadde vært fint om vi kan hente disse fra et sted evt. å kompilere disse opp fra github på egen hånd. Dockerfile.chained viser hvordan dette kan gjøres for tusd.
  - workflowene bør kopieres inn i denne kontaineren på et vis.
  - Ta ibruk TLS
