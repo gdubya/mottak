@@ -1,0 +1,5 @@
+#!/usr/bin/env python
+import sys, json
+data = json.load(sys.stdin)
+uuid = data["Upload"]["MetaData"]["uuid"]
+
