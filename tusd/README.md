@@ -20,7 +20,7 @@ Tusd trenger tilgang til objektlageret. Det er noe krøll ved å bruke S3-APIene
 
 Todo:
  - per idag så ligger disse binærene som binære filer som er ferdig kompilert. Det hadde vært fint om vi kan hente disse fra et sted evt. å kompilere disse opp fra github på egen hånd. Dockerfile.chained viser hvordan dette kan gjøres for tusd.
-
+ - workflowene bør kopieres inn i denne kontaineren på et vis.
 
 
 
