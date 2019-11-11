@@ -19,12 +19,12 @@ Når kontainerne fyrer opp starter den tusd på port 1080. Den får også kopier
 Tusd trenger tilgang til objektlageret. Det er noe krøll ved å bruke S3-APIene mot GCS og derfor bruker vi den innebyggede GCS-støtten til tusd frem til dette er løst.
 
 ## Kjøre opp tusd-kontainerne i kubernetes.
- - $ hent ned GCS-tilgangs JSON-object. Legg det inn som en secret i k8s. se create-k8s-secret.sh
+ - hent ned GCS-tilgangs JSON-object. Legg det inn som en secret i k8s. se create-k8s-secret.sh
  - kjør opp tusd sin deployment:
-   - kubectl apply -f deployment.yaml
+   - ```kubectl apply -f deployment.yaml```
  - kjør opp tusd sin service (kobler tusd-poden mot en load balancer slik at vi når den utenfra)
-   - kubectl apply -f service.yaml
- - for å finne IP-adressen til tusd-tjenestne gjør "kubectl get services tusd-service" 
+   - ```kubectl apply -f service.yaml```
+ - for å finne IP-adressen til tusd-tjenestne gjør ```kubectl get services tusd-service```
   
 
 Todo:
