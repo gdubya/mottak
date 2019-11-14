@@ -15,12 +15,15 @@ spec:
         run: mottak
     spec:
       containers:
-      - image: perbu/mottak:17
+      - image: perbu/mottak:18
         imagePullPolicy: IfNotPresent
         name: mottak
         ports:
         - containerPort: 80
           protocol: TCP
+        env:
+          - name: UPLOAD_URL
+            value: "http://35.228.155.81/files"
         volumeMounts:
           - name: dsn
             mountPath: /etc/secrets/dsn

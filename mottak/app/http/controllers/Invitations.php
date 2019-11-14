@@ -128,7 +128,7 @@ class Invitations extends Controller
 		$url = 'dpldr://' . base64_encode(json_encode
 		([
 			'reference'  => $invitation->uuid,
-			'uploadUrl'  => '...',
+			'uploadUrl'  => getenv('UPLOAD_URL'),
 			'uploadType' => 'tar',
 			'meta'       => ['invitation_id' => $invitation->id],
 		]));
