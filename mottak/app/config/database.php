@@ -32,10 +32,7 @@ return
 	[
 		'cloudsql' => 
 		[
-			'dsn' => getenv('DBSTRING'),
-			'username' => getenv('PGUSER'),
-			'password' => getenv('PGPASS')
-		],
+			'dsn' => getenv('DBSTRING')		],
 		'test' =>
 		[
 			'dsn'         => 'mysql:dbname=test;host=localhost;port=3306',
