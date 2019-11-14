@@ -9,7 +9,7 @@ return
 	 *
 	 * Default configuration to use.
 	 */
-	'default' => 'test',
+	'default' => 'cloudsql',
 
 	/*
 	 * ---------------------------------------------------------
@@ -27,8 +27,15 @@ return
 	 * options    : (optional) An array of PDO options
 	 * queries    : (optional) Queries that will be executed right after a connection has been made
 	 */
+
 	'configurations' =>
 	[
+		'cloudsql' => 
+		[
+			'dsn' => getenv('DBSTRING'),
+			'username' => getenv('PGUSER'),
+			'password' => getenv('PGPASS')
+		],
 		'test' =>
 		[
 			'dsn'         => 'mysql:dbname=test;host=localhost;port=3306',
