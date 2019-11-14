@@ -1,3 +1,8 @@
 #!/bin/sh
+. /etc/secrets/dsn/dsn
 
-php /srv/app/reactor migrate.up && php /srv/app/reactor server
+echo DSN: $dsn
+
+php /srv/app/reactor migrate.up
+
+apache2-foreground

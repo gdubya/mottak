@@ -1,0 +1,31 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mottak
+  namespace: argo
+
+spec:
+  selector:
+    matchLabels:
+      run: mottak
+
+  template:
+    metadata:
+      labels:
+        run: mottak
+    spec:
+      containers:
+      - image: perbu/mottak:17
+        imagePullPolicy: IfNotPresent
+        name: mottak
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        volumeMounts:
+          - name: dsn
+            mountPath: /etc/secrets/dsn
+      volumes:
+        - name: dsn
+          secret:
+            secretName: dsn
+
