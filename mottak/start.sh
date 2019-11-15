@@ -1,7 +1,7 @@
 #!/bin/sh
-. /etc/secrets/dsn/dsn
+# . /etc/secrets/dsn/dsn
 
-echo DSN: $dsn
+# echo DSN: $DBSTRING
 
 php /srv/app/reactor migrate.up
 
