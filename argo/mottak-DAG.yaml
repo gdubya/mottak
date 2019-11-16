@@ -28,6 +28,7 @@ spec:
   - name: sjekksum-kontroll
     container: 
       image: perbu/sjekksum-kontroll:latest
+      imagePullPolicy: Always
       env:
         - name: ENDPOINT
           value:  '{{workflow.parameters.ENDPOINT}}'
@@ -61,6 +62,7 @@ spec:
   - name: avscan
     container: 
       image: perbu/avscan:latest
+      imagePullPolicy: Always
       env:
         - name: ENDPOINT
           value:  '{{workflow.parameters.ENDPOINT}}'
@@ -88,6 +90,7 @@ spec:
   - name: arkade5
     container:
       image: perbu/arkade5:latest
+      imagePullPolicy: Always
       env:
         - name: ENDPOINT
           value:  '{{workflow.parameters.ENDPOINT}}'
