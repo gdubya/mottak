@@ -2,3 +2,5 @@
 .vscode
 .venv
 .DS_Store
+secrets
+cloud_sql_proxy
