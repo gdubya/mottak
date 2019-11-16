@@ -7,6 +7,11 @@ import psycopg2
 import psycopg2.extras
 import re  # for parsing the DBSTRING
 
+# Return codes.
+UUIDERROR =  1 # invalid UUID
+DBERROR   = 10
+JSONERROR = 11
+IOERROR   = 12
 
 def eprint(*args, **kwargs):
     """ Print to stderr """
@@ -25,7 +30,11 @@ def create_db_access(dbstring):
     mystr = dbstring[6:]
     mystr = mystr.rstrip()
     d = dict(re.findall(r'(\w+)=([^;]+);?', mystr))
-
+    # Validate dbstring:
+    for key in ['user', 'password', 'host', 'dbname']:
+        if key not in d.keys():
+            eprint('%s not found in DBSTRING' % key)
+            exit(DBERROR)
     return d
 
 
@@ -37,43 +46,60 @@ def my_connect(conn_info):
                                       password=conn_info['password'],
                                       connect_timeout=10)
 
-        cursor = connection.cursor()
-        # Print PostgreSQL Connection properties
-        # print(connection.get_dsn_parameters(), "\n")
-
-        # Print PostgreSQL version
-        #cursor.execute("SELECT version();")
-        #record = cursor.fetchone()
-        #print("You are connected to - ", record, "\n")
     except (Exception, psycopg2.Error) as error:
         print("Error while connecting to PostgreSQL:", error)
+        exit(DBERROR)
     finally:
         return connection
 
-
 def my_disconnect(conn):
     conn.close()
-    #print("PostgreSQL connection is closed")
-
 
 def read_tusd_event():
-    data = json.load(sys.stdin)
+    try:
+        data = json.load(sys.stdin)
+    except ValueError as e:
+        eprint("Error parsing JSON:", e)
+        exit(JSONERROR)
     return data
 
 
 def get_metadata(conn, uuid):
-    dict_cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    dict_cursor.execute('SELECT uuid, checksum, is_sensitive, name, email, type '
-                        'FROM invitations, archive_types '
-                        'WHERE archive_type_id=archive_types.id '
-                        'AND uuid=%s', (uuid,))
-    rec = dict_cursor.fetchall()
-    return rec[0]
+    try:
+        dict_cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        dict_cursor.execute('SELECT uuid, checksum, is_sensitive, name, email, type '
+                            'FROM invitations, archive_types '
+                            'WHERE archive_type_id=archive_types.id '
+                            'AND uuid=%s', (uuid,))
+        rec = dict_cursor.fetchall()
+    except psycopg2.Error as e:
+        eprint('SQL Query error:', e)
+        exit(DBERROR)
 
+    if len(rec) == 0:
+        return None
+    else:
+        return rec[0]
+
+
+def create_param_file(metadata):
+    """ Create a metadata JSON-file for Argo to ingest """
+########################################################
+
+# We use the same source for both pre-create and post-finish hook
+# This identifies it
+my_name = os.path.basename(__file__)
 
 data = read_tusd_event()
-uuid = data["Upload"]["MetaData"]["uuid"]
 
+try:
+    uuid = data["Upload"]["MetaData"]["uuid"]
+except:
+    eprint("Could not find UUID in JSON")
+    exit(JSONERROR)
+
+
+    
 connection = my_connect(create_db_access(os.getenv('DBSTRING')))
 
 metadata = get_metadata(connection, uuid)
@@ -84,4 +110,4 @@ if ((metadata) and ('uuid' in metadata)):
     exit(0)
 else:
     print("Unknown UUID:" + uuid)
-    exit(1)
+    exit(UUIDERROR)

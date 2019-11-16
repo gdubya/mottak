@@ -15,8 +15,8 @@ spec:
         run: mottak
     spec:
       containers:
-      - image: perbu/mottak:19
-        imagePullPolicy: IfNotPresent
+      - image: perbu/mottak:latest
+        imagePullPolicy: Always
         name: mottak
         ports:
         - containerPort: 80

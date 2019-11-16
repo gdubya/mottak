@@ -1,4 +1,3 @@
-# Please note; chained build-
 FROM alpine:3.9
 
 COPY  artifacts/tusd /usr/local/bin/
@@ -18,7 +17,12 @@ RUN apk add --no-cache ca-certificates jq gcc curl bash \
     && mkdir -p /srv/tusd-data \
     && chown tusd:tusd /srv/tusd-data
 
-COPY tusd-hooks  /srv/
+RUN apk add --no-cache python3 postgresql-dev gcc python3-dev musl-dev \
+    && apk add  --no-cache postgresql-client \
+    && pip3 install psycopg2
+
+
+COPY tusd-hooks/  /srv/tusd-hooks
 
 # Set the environment variable to grants access to GCS
 # This should be referenced in the deployment.yaml

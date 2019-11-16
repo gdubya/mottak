@@ -8,23 +8,29 @@ spec:
   selector:
     matchLabels:
       run: tusd
-
   template:
     metadata:
       labels:
         run: tusd
     spec:
       containers:
-      - image: perbu/tusd:10
-        imagePullPolicy: IfNotPresent
+      - image: perbu/tusd
+        imagePullPolicy: Always
         name: tusd
         ports:
         - containerPort: 1080
           protocol: TCP
+        # GCS auth happends through a magic JSON file.
         volumeMounts:
           - name: gcs
             mountPath: "/etc/gcs"
             readOnly: true
+        env:
+          - name: DBSTRING
+            valueFrom: 
+              secretKeyRef:
+                name: dsn
+                key: dsn
       volumes:
        - name: gcs
          secret:
