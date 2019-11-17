@@ -15,7 +15,7 @@ spec:
         run: mottak
     spec:
       containers:
-      - image: perbu/mottak:latest
+      - image: gcr.io/mottak/mottak
         imagePullPolicy: Always
         name: mottak
         ports:

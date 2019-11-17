@@ -14,7 +14,7 @@ spec:
         run: tusd
     spec:
       containers:
-      - image: perbu/tusd
+      - image: gcr.io/mottak/tusd
         imagePullPolicy: Always
         name: tusd
         ports:
