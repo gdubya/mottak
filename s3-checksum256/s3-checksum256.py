@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+from __future__ import print_function   # for eprint
+from __future__ import with_statement
+
 import os
 import sys
 import logging
@@ -10,8 +13,14 @@ from botocore.exceptions import ClientError
 from dotenv import load_dotenv
 load_dotenv()
 
+RESULT = '/tmp/result'
+
 # To enable debugging of the boto3 library uncomment this:
 # boto3.set_stream_logger('', logging.DEBUG)
+
+def eprint(*args, **kwargs):
+    """ Print to stderr """
+    print(*args, file=sys.stderr, **kwargs)
 
 
 def get_object(what, objectstore, bucket_name, object_name):
@@ -81,14 +90,16 @@ def checksum():
 
     for byte_block in iter(lambda: file_stream.read(4096),b""):
         sha256_hash.update(byte_block)
-    with open("/tmp/result", "w") as res_file:
-        if (sha256_hash.hexdigest() == os.getenv('CHECKSUM')):
-            print("ok", file=res_file)
-        else:
-            print("fail")            
-    print(sha256_hash.hexdigest())
-    
+    try:
+        with open(RESULT, "w") as res_file:
+            if (sha256_hash.hexdigest() == os.getenv('CHECKSUM')):
+                print("ok", file=res_file)
+    except EnvironmentError as e:
+        logging.error("Failed to open %s: %s" % (RESULT, e))
+        exit(2)            
 
+    # Dump checksum to stdout.
+    print(sha256_hash.hexdigest())
 
 if __name__ == '__main__':
     if checksum():
