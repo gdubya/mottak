@@ -8,7 +8,8 @@ COPY app /srv/app
 COPY public /srv/public
 
 # Add composer for deps.
-COPY ./composer.phar /srv/composer.phar
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+# COPY ./composer.phar /srv/composer.phar
 COPY ./composer.json /srv/composer.json
 
 RUN apt-get update && apt-get install -y \
@@ -16,7 +17,7 @@ RUN apt-get update && apt-get install -y \
     git \
     libpq-dev \
     && docker-php-ext-install pdo_pgsql \
-    && php composer.phar install \
+    && composer install \
     && a2enmod rewrite \
     && chown -R www-data:www-data /srv/app/storage
 
