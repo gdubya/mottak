@@ -1,4 +1,4 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '--tag=gcr.io/$PROJECT_ID/hello', 's3-checksum256']
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/s3-checksum256', 's3-checksum256']
 images: ['gcr.io/$PROJECT_ID/s3-checksum256']
