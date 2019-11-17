@@ -1,11 +1,6 @@
 FROM alpine:3.9
 
-COPY  artifacts/tusd /usr/local/bin/
-COPY  artifacts/kubectl /usr/local/bin/
-COPY  artifacts/argo /usr/local/bin/
- 
-
-
+ADD artifacts/artifacts.tar.gz /usr/local/bin
 
 # CA for networking
 # curl for installing kubectl
