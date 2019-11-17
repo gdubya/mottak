@@ -27,7 +27,7 @@ spec:
 
   - name: sjekksum-kontroll
     container: 
-      image: perbu/sjekksum-kontroll:latest
+      image: gcr.io/mottak/s3-checksum256
       imagePullPolicy: Always
       env:
         - name: ENDPOINT
@@ -61,7 +61,7 @@ spec:
 
   - name: avscan
     container: 
-      image: perbu/avscan:latest
+      image: gcr.io/mottak/s3-scan
       imagePullPolicy: Always
       env:
         - name: ENDPOINT
@@ -89,7 +89,7 @@ spec:
 
   - name: arkade5
     container:
-      image: perbu/arkade5:latest
+      image: gcr.io/mottak/arkade5
       imagePullPolicy: Always
       env:
         - name: ENDPOINT
