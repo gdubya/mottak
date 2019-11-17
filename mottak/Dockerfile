@@ -1,28 +1,26 @@
 FROM php:7.2-apache
-RUN mkdir -p /srv
 WORKDIR /srv
 
 EXPOSE 80
 
 # Copy these dirs to the container
-ADD app app
-ADD public public
+COPY app /srv/app
+COPY public /srv/public
 
 # Add composer for deps.
-COPY composer.phar /srv/
-COPY composer.json /srv/
+COPY ./composer.phar /srv/composer.phar
+COPY ./composer.json /srv/composer.json
 
 RUN apt-get update && apt-get install -y \
     zip unzip \
     git \
-    libpq-dev
-RUN docker-php-ext-install pdo pdo_pgsql
-RUN php composer.phar install
+    libpq-dev \
+    && docker-php-ext-install pdo_pgsql \
+    && php composer.phar install \
+    && a2enmod rewrite \
+    && chown -R www-data:www-data /srv/app/storage
 
 COPY vhost.conf /etc/apache2/sites-available/000-default.conf
-RUN a2enmod rewrite
-RUN chown -R www-data:www-data /srv/app/storage
-
 
 COPY start.sh /srv/
 CMD ["/srv/start.sh"]
