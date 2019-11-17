@@ -2,3 +2,15 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '--tag=gcr.io/$PROJECT_ID/s3-checksum256', 's3-checksum256']
 images: ['gcr.io/$PROJECT_ID/s3-checksum256']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/s3-scan', 's3-scan']
+images: ['gcr.io/$PROJECT_ID/s3-scan']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/arkade5', 'arkade5']
+images: ['gcr.io/$PROJECT_ID/arkade5']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/tusd', 'tusd']
+images: ['gcr.io/$PROJECT_ID/tusd']
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=gcr.io/$PROJECT_ID/mottak', 'mottak']
+images: ['gcr.io/$PROJECT_ID/mottak']
