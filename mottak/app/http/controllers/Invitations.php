@@ -11,6 +11,9 @@ use mako\http\response\senders\Redirect;
 use mako\http\routing\Controller;
 use mako\validator\input\traits\InputValidationTrait;
 use mako\view\ViewFactory;
+use Symfony\Component\Mailer\Bridge\Mailgun\Http\MailgunTransport;
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mime\Email;
 
 /**
  *
@@ -116,6 +119,30 @@ class Invitations extends Controller
 	/**
 	 *
 	 */
+	protected function sendEmail(string $recipient, string $url): void
+	{
+		$email = new Email;
+
+		$email->to($recipient);
+
+		$email->from('donotreply@' . getenv('MAILGUN_DOMAIN'));
+
+		$email->subject('Invitasjon');
+
+		$email->text($url);
+
+		$email->html("<a href='{$url}'>{$url}</a>");
+
+		$transport = new MailgunTransport(getenv('MAILGUN_API_KEY'), getenv('MAILGUN_DOMAIN'));
+
+		$mailer = new Mailer($transport);
+
+		$mailer->send($email);
+	}
+
+	/**
+	 *
+	 */
 	public function receipt(string $id): string
 	{
 		$invitation = Invitation::get($id);
@@ -132,6 +159,8 @@ class Invitations extends Controller
 			'uploadType' => 'tar',
 			'meta'       => ['invitation_id' => $invitation->id],
 		]));
+
+		$this->sendEmail($invitation->email, $url);
 
 		return $this->view->render('invitations.receipt',
 		[

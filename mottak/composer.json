@@ -24,7 +24,12 @@
     },
     "require": {
         "php": ">=7.2.0",
-        "mako/framework": "6.3.*"
+        "mako/framework": "6.3.*",
+        "symfony/mailer": "^4.3",
+        "symfony/mailgun-mailer": "^4.3",
+        "symfony/mime": "^4.3",
+        "symfony/dotenv": "^4.3",
+        "symfony/http-client": "^4.3"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
