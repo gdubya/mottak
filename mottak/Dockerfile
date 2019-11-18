@@ -19,7 +19,8 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install pdo_pgsql \
     && composer install \
     && a2enmod rewrite \
-    && chown -R www-data:www-data /srv/app/storage
+    && chown -R www-data:www-data /srv/app/storage \
+    && apt-get clean
 
 COPY vhost.conf /etc/apache2/sites-available/000-default.conf
 
