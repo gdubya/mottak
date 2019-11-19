@@ -26,6 +26,22 @@ spec:
             mountPath: "/etc/gcs"
             readOnly: true
         env:
+          - name: ENDPOINT
+            value: https://storage.googleapis.com
+          - name: REGION_NAME
+            value: us-east-1
+          - name: BUCKET
+            value: pilot-spool
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: s3-cred
+                key: accessKeySecret
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: s3-cred
+                key: secretKeySecret
           - name: DBSTRING
             valueFrom: 
               secretKeyRef:

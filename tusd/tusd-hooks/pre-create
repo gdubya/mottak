@@ -99,7 +99,6 @@ def create_param_file(tmpfile,metadata,data):
     """ Create a metadata JSON-file for Argo to ingest """
     env = ['ENDPOINT', 'AWS_ACCESS_KEY_ID',
             'AWS_SECRET_ACCESS_KEY', 'BUCKET','AWS_REGION']
-    print(data)
     with open(tmpfile, "w") as pfile:
         for key in env:
             print(key+':', os.getenv(key), file=pfile)
@@ -110,11 +109,15 @@ def create_param_file(tmpfile,metadata,data):
 
 def argo_submit(paramfile):
     """ Submit a job to argo. Takes a JSON file as parameter """
-    submit = subprocess.run(["argo", "submit", "--parameter-file", paramfile, "/srv/argo-mottak-DAG.yaml"], timeout=10,capture_output=True)
+    argocmd = ["argo", "submit", "--parameter-file", paramfile, "/srv/argo-mottak-DAG.yaml"]
+    print("Argo cmd line:", argocmd)
+    submit = subprocess.run(argocmd, timeout=10,capture_output=True)
     if not (submit.returncode == 0):
         eprint("Argo submit failed")
-        eprint("Stderr: ", submit.stderr)
-        eprint("Stdout: ", submit.stdout)
+        if submit.stderr:
+            eprint("Stderr: ", submit.stderr.decode('utf-8'))
+        if submit.stdout:
+            eprint("Stdout: ", submit.stdout.decode('utf-8'))
         exit(ARGOERROR)        
 
 
