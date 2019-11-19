@@ -104,6 +104,7 @@ def create_param_file(tmpfile,metadata,data):
             print(key+':', os.getenv(key), file=pfile)
         print('UUID: ', metadata['uuid'], file=pfile)
         print('OBJECT: ', data['Upload']['MetaData']['fileName'], file=pfile)
+        print('CHECKSUM: ', metadata['checksum'])
 
         
 
