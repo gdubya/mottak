@@ -143,7 +143,7 @@ connection = my_connect(create_db_access(os.getenv('DBSTRING')))
 metadata = get_metadata(connection, uuid)
 
 # This is the pre-create hook. The only concern here is to validate the 
-if (my_name == pre-create):
+if (my_name == 'pre-create'):
     if not (uuid == metadata['uuid']):
         eprint('Unknown UUID')
         exit(UUIDERROR)
