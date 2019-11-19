@@ -19,6 +19,7 @@ RUN apk add --no-cache python3 postgresql-dev gcc python3-dev musl-dev \
 # Note how use the same script for both hooks.
 COPY tusd-hooks/pre-create  /srv/tusd-hooks/pre-create
 COPY tusd-hooks/pre-create  /srv/tusd-hooks/post-finish
+COPY argo-mottak-DAG.yaml /srv/
 
 # Set the environment variable to grants access to GCS
 # This should be referenced in the deployment.yaml
