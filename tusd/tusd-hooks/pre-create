@@ -95,18 +95,27 @@ def randomString(stringLength=10):
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(stringLength))
 
-def create_param_file(tmpfile,metadata):
+def create_param_file(tmpfile,metadata,data):
     """ Create a metadata JSON-file for Argo to ingest """
-    print
+    env = ['ENDPOINT', 'AWS_ACCESS_KEY_ID',
+            'AWS_SECRET_ACCESS_KEY', 'BUCKET','AWS_REGION']
+    print(data)
+    with open(tmpfile, "w") as pfile:
+        for key in env:
+            print(key+':', os.getenv(key), file=pfile)
+        print('UUID: ', metadata['uuid'], file=pfile)
+        print('OBJECT: ', data['Upload']['MetaData']['fileName'], file=pfile)
+
+        
 
 def argo_submit(paramfile):
     """ Submit a job to argo. Takes a JSON file as parameter """
-    submit = subprocess.run(["sleep", "2"], timeout=10,capture_output=True)
+    submit = subprocess.run(["argo", "submit", "--parameter-file", paramfile, "/srv/argo-mottak-DAG.yaml"], timeout=10,capture_output=True)
     if not (submit.returncode == 0):
         eprint("Argo submit failed")
         eprint("Stderr: ", submit.stderr)
         eprint("Stdout: ", submit.stdout)
-        exit(ARGOERROR)
+        exit(ARGOERROR)        
 
 
 ########################################################
@@ -116,7 +125,7 @@ def argo_submit(paramfile):
 my_name = os.path.basename(__file__)
 
 data = read_tusd_event()
-input_file = '/tmp/argo-input-' + randomString();
+param_file = '/tmp/argo-input-' + randomString()
 
 if not (os.getenv('DBSTRING')):
     eprint("DBSTRING environment variable not set")
@@ -133,11 +142,21 @@ connection = my_connect(create_db_access(os.getenv('DBSTRING')))
 
 metadata = get_metadata(connection, uuid)
 
+# This is the pre-create hook. The only concern here is to validate the 
+if (my_name == pre-create):
+    if not (uuid == metadata['uuid']):
+        eprint('Unknown UUID')
+        exit(UUIDERROR)
+    else:
+        exit(0)
+
+# We assume that we're the post-create hook and we create an input-file for argo 
+# and submit the workflow into argo.
 
 if ((metadata) and ('uuid' in metadata)):
-    create_param_file(input_file, metadata)
-    argo_submit(input_file)
-    # os.remove(input_file)
+    create_param_file(param_file, metadata,data)
+    argo_submit(param_file)
+    os.remove(input_file)
     my_disconnect(connection)
 
     exit(0)

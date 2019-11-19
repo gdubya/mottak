@@ -16,8 +16,9 @@ RUN apk add --no-cache python3 postgresql-dev gcc python3-dev musl-dev \
     && apk add  --no-cache postgresql-client \
     && pip3 install psycopg2
 
-
-COPY tusd-hooks/  /srv/tusd-hooks
+# Note how use the same script for both hooks.
+COPY tusd-hooks/pre-create  /srv/tusd-hooks/pre-create
+COPY tusd-hooks/pre-create  /srv/tusd-hooks/post-finish
 
 # Set the environment variable to grants access to GCS
 # This should be referenced in the deployment.yaml
