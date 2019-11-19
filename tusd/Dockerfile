@@ -14,7 +14,8 @@ RUN apk add --no-cache ca-certificates jq gcc curl bash \
 
 RUN apk add --no-cache python3 postgresql-dev gcc python3-dev musl-dev \
     && apk add  --no-cache postgresql-client \
-    && pip3 install psycopg2 dotenv
+    && pip3 install psycopg2 \
+    && pip3 install python-dotenv
 
 # Note how use the same script for both hooks.
 COPY tusd-hooks/pre-create  /srv/tusd-hooks/pre-create
