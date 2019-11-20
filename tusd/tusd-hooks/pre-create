@@ -105,6 +105,7 @@ def create_param_file(tmpfile,metadata,data):
         print('UUID: ', metadata['uuid'], file=pfile)
         print('OBJECT: ', data['Upload']['MetaData']['fileName'], file=pfile)
         print('CHECKSUM: ', metadata['checksum'], file=pfile)
+        print('ARCHIEVE_TYPE: ', metadata['type'], file=pfile)
 
         
 
