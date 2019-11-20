@@ -31,8 +31,23 @@ spec:
         env:
           - name: UPLOAD_URL
             value: "http://35.228.155.81/files"
+          - name: APPLICATION_SECRET
+            valueFrom:
+              secretKeyRev:
+                name: invitation
+                key: applicationSecret
           - name: DBSTRING
             valueFrom: 
               secretKeyRef:
                 name: dsn
                 key: dsn
+           - name: MAILGUN_API_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: mailgun
+                    key: apiKey
+          - name: MAILGUN_DOMAIN
+                valueFrom:
+                  secretKeyRef:
+                    name: mailgun
+                    key: emailDomain
