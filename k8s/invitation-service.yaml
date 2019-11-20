@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   namespace: argo
-  name:  mottak-service
+  name:  invitation-service
 spec:
   type: LoadBalancer
   ports:
@@ -10,7 +10,7 @@ spec:
     port: 80
     targetPort: 80
   selector:
-    run:  mottak
+    run:  invitation
   sessionAffinity: ClientIP
   sessionAffinityConfig:
     clientIP:
