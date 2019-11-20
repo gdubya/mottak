@@ -4,7 +4,7 @@
 
 use Symfony\Component\Dotenv\Dotenv;
 
-if($app->getEnvironment() === 'dev')
+if($app->getEnvironment() === 'dev' && file_exists(dirname(__DIR__) . '/.env'))
 {
 	$env = new Dotenv;
 

@@ -179,7 +179,7 @@ return
 	 * The secret is used to provide cryptographic signing, and should be set to a unique, unpredictable value.
 	 * You should NOT use the secret included with the framework in a production environment!
 	 */
-	'secret' => 'hex:5345d59ec5aa655fc51a615bae70c655aeedaca009f9558cc3a8591b8af4d4b8',
+	'secret' => getenv('MAKO_APPLICATION_SECRET'),
 
 	/*
 	 * ---------------------------------------------------------
