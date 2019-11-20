@@ -13,14 +13,24 @@ import re  # for parsing the DBSTRING
 from dotenv import load_dotenv
 load_dotenv()
 
+# Todo:
+# - validate filename (should be $uuid.tar)
+# - check that the uploader URL has not been tampered with
+
+
+# Allow for override (for dev purposes)
+WORKFLOW = os.getenv('WORKFLOW', default='/srv/argo-mottak-DAG.yaml')
 
 # Return codes.
-UUIDERROR  =  1 # invalid UUID
-DBERROR    = 10
-JSONERROR  = 11
-IOERROR    = 12
+UUIDERROR = 1  # invalid UUID
+DBERROR = 10
+JSONERROR = 11
+IOERROR = 12
 USAGEERROR = 13
-ARGOERROR  = 14
+ARGOERROR = 14
+UNKNOWNUUID = 15
+UNKNOWNIID = 16
+
 
 def eprint(*args, **kwargs):
     """ Print to stderr """
@@ -61,8 +71,10 @@ def my_connect(conn_info):
     finally:
         return connection
 
+
 def my_disconnect(conn):
     conn.close()
+
 
 def read_tusd_event():
     try:
@@ -73,13 +85,14 @@ def read_tusd_event():
     return data
 
 
-def get_metadata(conn, uuid):
+def get_metadata(conn, iid):
     try:
-        dict_cursor = connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        dict_cursor.execute('SELECT uuid, checksum, is_sensitive, name, email, type '
+        dict_cursor = conn.cursor(
+            cursor_factory=psycopg2.extras.RealDictCursor)
+        dict_cursor.execute('SELECT invitations.id, uuid, checksum, is_sensitive, name, email, type '
                             'FROM invitations, archive_types '
                             'WHERE archive_type_id=archive_types.id '
-                            'AND uuid=%s', (uuid,))
+                            'AND invitations.id=%s', (iid,))
         rec = dict_cursor.fetchall()
     except psycopg2.Error as e:
         eprint('SQL Query error:', e)
@@ -90,37 +103,38 @@ def get_metadata(conn, uuid):
     else:
         return rec[0]
 
+
 def randomString(stringLength=10):
     """Generate a random string of fixed length """
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(stringLength))
 
-def create_param_file(tmpfile,metadata,data):
+
+def create_param_file(tmpfile, metadata, data):
     """ Create a metadata JSON-file for Argo to ingest """
     env = ['ENDPOINT', 'AWS_ACCESS_KEY_ID',
-            'AWS_SECRET_ACCESS_KEY', 'BUCKET','AWS_REGION']
+           'AWS_SECRET_ACCESS_KEY', 'BUCKET', 'AWS_REGION']
     with open(tmpfile, "w") as pfile:
         for key in env:
             print(key+':', os.getenv(key), file=pfile)
-        print('UUID: ', metadata['uuid'], file=pfile)
-        print('OBJECT: ', data['Upload']['MetaData']['fileName'], file=pfile)
-        print('CHECKSUM: ', metadata['checksum'], file=pfile)
-        print('ARCHIEVE_TYPE: ', metadata['type'], file=pfile)
+        print('UUID:', metadata['uuid'], file=pfile)
+        print('OBJECT:', metadata['uuid'] + '.tar', file=pfile)
+        print('CHECKSUM:', metadata['checksum'], file=pfile)
+        print('ARCHIEVE_TYPE:', metadata['type'], file=pfile)
 
-        
 
 def argo_submit(paramfile):
     """ Submit a job to argo. Takes a JSON file as parameter """
-    argocmd = ["argo", "submit", "--parameter-file", paramfile, "/srv/argo-mottak-DAG.yaml"]
+    argocmd = ["argo", "submit", "--parameter-file", paramfile, WORKFLOW]
     print("Argo cmd line:", argocmd)
-    submit = subprocess.run(argocmd, timeout=10,capture_output=True)
+    submit = subprocess.run(argocmd, timeout=10, capture_output=True)
     if not (submit.returncode == 0):
         eprint("Argo submit failed")
         if submit.stderr:
             eprint("Stderr: ", submit.stderr.decode('utf-8'))
         if submit.stdout:
             eprint("Stdout: ", submit.stdout.decode('utf-8'))
-        exit(ARGOERROR)        
+        exit(ARGOERROR)
 
 
 ########################################################
@@ -137,17 +151,19 @@ if not (os.getenv('DBSTRING')):
     exit(USAGEERROR)
 
 try:
-    uuid = data["Upload"]["MetaData"]["uuid"]
+    iid = data["Upload"]["MetaData"]["invitation_id"]
 except:
-    eprint("Could not find UUID in JSON")
-    exit(JSONERROR)
+    eprint("Could not find invitation_id in JSON:", iid)
+    exit(UNKNOWNIID)
 
-    
 connection = my_connect(create_db_access(os.getenv('DBSTRING')))
 
-metadata = get_metadata(connection, uuid)
+metadata = get_metadata(connection, iid)
 
-# This is the pre-create hook. The only concern here is to validate the 
+uuid = metadata['uuid']
+
+
+# This is the pre-create hook. The only concern here is to validate the UUID
 if (my_name == 'pre-create'):
     if not (uuid == metadata['uuid']):
         eprint('Unknown UUID')
@@ -155,13 +171,13 @@ if (my_name == 'pre-create'):
     else:
         exit(0)
 
-# We assume that we're the post-create hook and we create an input-file for argo 
+# We assume that we're the post-create hook and we create an input-file for argo
 # and submit the workflow into argo.
 
 if ((metadata) and ('uuid' in metadata)):
-    create_param_file(param_file, metadata,data)
+    create_param_file(param_file, metadata, data)
     argo_submit(param_file)
-    os.remove(input_file)
+    os.remove(param_file)
     my_disconnect(connection)
 
     exit(0)
@@ -170,13 +186,13 @@ else:
     exit(UUIDERROR)
 
 
-# Stick these things as k8s secrets and dump them into the input file. 
+# Stick these things as k8s secrets and dump them into the input file.
 # Then kick off argo.
 
 
 # ENDPOINT: https://storage.googleapis.com
-# AWS_ACCESS_KEY_ID: 
-# AWS_SECRET_ACCESS_KEY: 
+# AWS_ACCESS_KEY_ID:
+# AWS_SECRET_ACCESS_KEY:
 # BUCKET: pilot-spool
 # OBJECT: 'uuid.tar'
 # CHECKSUM: 2afeec307b0573339b3292e27e7971b5b040a5d7e8f7432339cae2fcd0eb936a
