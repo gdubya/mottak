@@ -33,7 +33,7 @@ spec:
             value: "http://35.228.155.81/files"
           - name: APPLICATION_SECRET
             valueFrom:
-              secretKeyRev:
+              secretKeyRef:
                 name: invitation
                 key: applicationSecret
           - name: DBSTRING
@@ -41,13 +41,13 @@ spec:
               secretKeyRef:
                 name: dsn
                 key: dsn
-           - name: MAILGUN_API_KEY
-                valueFrom:
-                  secretKeyRef:
-                    name: mailgun
-                    key: apiKey
+          - name: MAILGUN_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: mailgun
+                key: apiKey
           - name: MAILGUN_DOMAIN
-                valueFrom:
-                  secretKeyRef:
-                    name: mailgun
-                    key: emailDomain
+            valueFrom:
+              secretKeyRef:
+                name: mailgun
+                key: emailDomain
