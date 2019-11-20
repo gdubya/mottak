@@ -11,3 +11,7 @@ spec:
     targetPort: 1080 
   selector:
     run:  tusd
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 600
