@@ -31,9 +31,9 @@ class Migration_20191113112844 extends Migration
 
 		$this->getConnection()->query('CREATE UNIQUE INDEX "idx_archive_types_type" ON "archive_types" ("type")');
 
-		$this->getConnection()->query('INSERT INTO "archive_types" ("type", "created_at", "updated_at") VALUES (\'Noark-3\', NOW(), NOW())');
-		$this->getConnection()->query('INSERT INTO "archive_types" ("type", "created_at", "updated_at") VALUES (\'Noark-4\', NOW(), NOW())');
-		$this->getConnection()->query('INSERT INTO "archive_types" ("type", "created_at", "updated_at") VALUES (\'Noark-5\', NOW(), NOW())');
+		$this->getConnection()->query('INSERT INTO "archive_types" ("type", "created_at", "updated_at") VALUES (\'noark3\', NOW(), NOW())');
+		$this->getConnection()->query('INSERT INTO "archive_types" ("type", "created_at", "updated_at") VALUES (\'noark5\', NOW(), NOW())');
+		$this->getConnection()->query('INSERT INTO "archive_types" ("type", "created_at", "updated_at") VALUES (\'fagsystem\', NOW(), NOW())');
 
 		$this->getConnection()->query
 		('
