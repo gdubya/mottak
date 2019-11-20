@@ -5,17 +5,27 @@ ADD artifacts/artifacts.tar.gz /usr/local/bin
 # CA for networking
 # curl for installing kubectl
 # bash for convenience
-RUN apk add --no-cache ca-certificates jq gcc curl bash \
-    && addgroup -g 1000 tusd \
+RUN apk add --no-cache \
+    bash \
+    ca-certificates \
+    curl \
+    gcc \
+    jq \
+    musl-dev \
+    postgresql-client \
+    postgresql-dev \
+    python3 \
+    python3-dev
+
+RUN addgroup -g 1000 tusd \
     && adduser -u 1000 -G tusd -s /bin/sh -D tusd \
     && mkdir -p /srv/tusd-hooks \
     && mkdir -p /srv/tusd-data \
     && chown tusd:tusd /srv/tusd-data
 
-RUN apk add --no-cache python3 postgresql-dev gcc python3-dev musl-dev \
-    && apk add  --no-cache postgresql-client \
-    && pip3 install psycopg2 \
-    && pip3 install python-dotenv
+RUN pip3 install \
+    psycopg2 \
+    python-dotenv
 
 # Note how use the same script for both hooks.
 COPY tusd-hooks/pre-create  /srv/tusd-hooks/pre-create
