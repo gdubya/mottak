@@ -10,7 +10,6 @@ parser.add_argument('--invitation-id', required=True, help='The invitation id')
 
 args = parser.parse_args()
 
-
 url = {
     'reference': str(uuid.uuid4()),
     'uploadUrl': args.upload_url,
@@ -20,4 +19,4 @@ url = {
     },
 }
 
-print('dpldir://%s' % (base64.b64encode(json.dumps(url))))
+print('dpldr://%s' % (base64.b64encode(json.dumps(url))))
