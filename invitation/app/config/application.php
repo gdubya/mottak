@@ -218,7 +218,7 @@ return
 	'error_handler' =>
 	[
 		'log_errors'      => true,
-		'display_errors'  => true,
+		'display_errors'  => false,
 		'debug_blacklist' => [], // E.g. ['_COOKIE' => ['mako_session']]
 		'dont_log'        =>
 		[
