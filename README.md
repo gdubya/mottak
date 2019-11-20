@@ -15,7 +15,7 @@ Build everything and pubish the resulting images to a container repo.
 
 Edit the k8s deployment files and make sure they reference the correct images.
 
-You want two pods running, tusd and mottak.
+You want two pods running, tusd and invitation.
 
 Then install argo into the argo namespace. Make sure tusd can submit workflows.
 

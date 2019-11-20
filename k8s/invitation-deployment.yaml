@@ -1,24 +1,24 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: mottak
+  name: invitation
   namespace: argo
 
 spec:
   replicas: 2
   selector:
     matchLabels:
-      run: mottak
+      run: invitation
 
   template:
     metadata:
       labels:
-        run: mottak
+        run: invitation
     spec:
       containers:
-      - image: gcr.io/mottak/mottak
+      - image: gcr.io/mottak/invitation
         imagePullPolicy: Always
-        name: mottak
+        name: invitation
         ports:
         - containerPort: 80
           protocol: TCP
