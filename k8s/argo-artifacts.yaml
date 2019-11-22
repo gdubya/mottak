@@ -3,8 +3,10 @@ data:
   config: |
     artifactRepository:
       s3:
+        # Override this:
         bucket:    pilot-spool
         keyPrefix: log
+        # Override this too - if deployed outside Google
         endpoint: storage.googleapis.com
         accessKeySecret:
           name: s3-cred

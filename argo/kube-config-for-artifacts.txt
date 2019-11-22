@@ -6,6 +6,8 @@ $ kubectl edit configmap workflow-controller-configmap -n argo
 
 and enter the below config. Adapt to your use.
 
+This is now redundant. See the k8s folder for a configmap and how to deploy it.
+
 
 
 

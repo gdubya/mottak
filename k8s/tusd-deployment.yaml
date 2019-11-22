@@ -33,10 +33,14 @@ spec:
             mountPath: "/etc/gcs"
             readOnly: true
         env:
+            # Override this if outside google:
+            # If on AWS, this should be unset, methinks.
           - name: ENDPOINT
             value: https://storage.googleapis.com
+            # Override this?
           - name: AWS_REGION
             value: us-east-1
+            # Override this if you're not Per.
           - name: BUCKET
             value: pilot-spool
           - name: AWS_ACCESS_KEY_ID

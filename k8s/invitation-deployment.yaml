@@ -29,6 +29,10 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 10
         env:
+          # We need to find a way to register the service
+          # that provides the URL to tusd so we can
+          # pick it here so the inviter can encode this in the URL
+          # Override this:
           - name: UPLOAD_URL
             value: "http://35.228.155.81/files"
           - name: APPLICATION_SECRET
