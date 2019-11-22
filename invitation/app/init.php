@@ -1,5 +1,7 @@
 <?php
 
+use Symfony\Component\Dotenv\Dotenv;
+
 /**
  * Configure PHP error reporting.
  * @see http://php.net/manual/en/function.error-reporting.php
@@ -11,7 +13,7 @@ error_reporting(E_ALL | E_STRICT);
  * printed to the screen as part of the output or if they should be hidden from the user.
  * It is recommended to set this value to false when you are in production.
  */
-ini_set('display_errors', true);
+ini_set('display_errors', false);
 
 /*
  * Override the default path for error logs.
@@ -40,3 +42,13 @@ define('MAKO_APPLICATION_PATH', __DIR__);
  * Include the composer autoloader.
  */
 include dirname(__DIR__) . '/vendor/autoload.php';
+
+/**
+ * Load environment variables.
+ */
+if(file_exists(dirname(__DIR__) . '/.env'))
+{
+	$env = new Dotenv;
+
+	$env->load(dirname(__DIR__) . '/.env');
+}
