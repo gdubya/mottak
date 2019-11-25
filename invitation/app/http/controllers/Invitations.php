@@ -40,7 +40,9 @@ class Invitations extends Controller
 		{
 			$input = $this->validate(XmlInput::class);
 
-			$xml = simplexml_load_file($input['archive']->getRealPath());
+			$xml = file_get_contents($input['archive']->getRealPath());
+
+			$xml = simplexml_load_string(str_replace(['<mets:', '</mets:'], ['<', '</'], $xml));
 
 			// Find the UUID and checksum
 
