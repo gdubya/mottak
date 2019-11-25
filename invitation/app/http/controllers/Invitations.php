@@ -14,6 +14,7 @@ use mako\view\ViewFactory;
 use Symfony\Component\Mailer\Bridge\Mailgun\Http\MailgunTransport;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mime\Email;
+use Throwable;
 
 /**
  *
@@ -35,43 +36,54 @@ class Invitations extends Controller
 	 */
 	public function parseXml(): Redirect
 	{
-		$input = $this->validate(XmlInput::class);
-
-		$xml = simplexml_load_file($input['archive']->getRealPath());
-
-		// Find the UUID and checksum
-
-		$uuid = str_replace('UUID:', '', (string) $xml->attributes()['OBJID']);
-
-		$checksum = (string) $xml->fileSec->fileGrp->file->attributes()['CHECKSUM'];
-
-		$name = $email = null;
-
-		// Try to find the submitter
-
-		foreach($xml->metsHdr->agent as $agent)
+		try
 		{
-			$attributes = $agent->attributes();
+			$input = $this->validate(XmlInput::class);
 
-			if((string) $attributes['OTHERROLE'] === 'SUBMITTER' && (string) $attributes['TYPE'] === 'INDIVIDUAL')
+			$xml = simplexml_load_file($input['archive']->getRealPath());
+
+			// Find the UUID and checksum
+
+			$uuid = str_replace('UUID:', '', (string) $xml->attributes()['OBJID']);
+
+			$checksum = (string) $xml->fileSec->fileGrp->file->attributes()['CHECKSUM'];
+
+			$name = $email = null;
+
+			// Try to find the submitter
+
+			foreach($xml->metsHdr->agent as $agent)
 			{
-				$name = (string) $agent->name;
+				$attributes = $agent->attributes();
 
-				foreach($agent->note as $note)
+				if((string) $attributes['OTHERROLE'] === 'SUBMITTER' && (string) $attributes['TYPE'] === 'INDIVIDUAL')
 				{
-					if(strpos((string) $note, '@') !== false)
-					{
-						$email = (string) $note;
-					}
-				}
+					$name = (string) $agent->name;
 
-				break;
+					foreach($agent->note as $note)
+					{
+						if(strpos((string) $note, '@') !== false)
+						{
+							$email = (string) $note;
+						}
+					}
+
+					break;
+				}
 			}
+
+			$archive = compact('uuid', 'checksum', 'name', 'email');
+		}
+		catch(Throwable $e)
+		{
+			$archive = false;
+
+			$this->logger->error($e->getMessage(), ['exception' => $e]);
 		}
 
 		// Flash the data and redirect to the next form
 
-		$this->session->putFlash('archive', compact('uuid', 'checksum', 'name', 'email'));
+		$this->session->putFlash('archive', $archive);
 
 		return $this->redirectResponse('invitations.create');
 	}
@@ -85,8 +97,9 @@ class Invitations extends Controller
 
 		return $this->view->render('invitations.create',
 		[
-			'input'         => $input,
-			'archive_types' => ArchiveType::ascending('type')->all(),
+			'input'           => $input === false ? null : $input,
+			'failed_to_parse' => $input === false,
+			'archive_types'   => ArchiveType::ascending('type')->all(),
 		]);
 	}
 

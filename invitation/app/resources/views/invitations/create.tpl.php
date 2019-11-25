@@ -1,9 +1,15 @@
 {% extends:'body' %}
 
 {% block:content %}
-<div class="alert alert-primary" role="alert">
-	Vennligst kontroller at all informasjon stemmer før du går videre.
-</div>
+{% if($input !== null) %}
+	<div class="alert alert-info" role="alert">
+		Vennligst kontroller at all informasjon stemmer før du går videre.
+	</div>
+{% elseif($failed_to_parse) %}
+	<div class="alert alert-warning" role="alert">
+		Vi greide ikke å parse XML-filen. Vennligst fyll ut alle felt før du går videre.
+	</div>
+{% endif %}
 <form method="post">
 	<div class="form-group">
 		<label for="name">Navn</label>
