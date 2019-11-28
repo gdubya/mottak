@@ -11,6 +11,7 @@ spec:
       archiveLogs: true
     dag:
       tasks:
+          # Todo - make the condition less verbose so we don't have to state every condition. dont know how.
         - name: task-kontroll
           template: sjekksum-kontroll
         - name: task-sjekksum-feil
@@ -24,6 +25,12 @@ spec:
         - name: task-arkade5
           template: arkade5
           dependencies: [task-avscan]
+          # Don't run arkade5 if the checksum was all wrong.
+          when: "'{{tasks.task-kontroll.outputs.parameters.checksum_result}}' == 'ok'"
+        - name: task-nytt-arkiv
+          template: nytt-arkiv
+          dependencies: [task-arkade5]
+          when: "'{{tasks.task-kontroll.outputs.parameters.checksum_result}}' == 'ok'"
 
   - name: sjekksum-kontroll
     container: 
@@ -54,10 +61,21 @@ spec:
   # Her kan vi gjøre ting som å varsle arkivskaper om at jobben ikke avvist.
   - name: sjekksum-feil
     container:
-      image: alpine:latest
-      command: [sh, -c]
-      args: ["echo \"Sjekksummen var HELT FEIL\""]
-
+      image: gcr.io/mottak/mailer
+      imagePullPolicy: Always
+      env:
+        - name: MAILGUN_DOMAIN
+          value: '{{workflow.parameters.MAILGUN_DOMAIN}}'
+        - name: MAILGUN_API_KEY
+          value: '{{workflow.parameters.MAILGUN_API_KEY}}'
+        - name: NAME
+          value: '{{workflow.parameters.NAME}}'
+        - name: RECIPIENT
+          value: '{{workflow.parameters.EMAIL}}'
+        - name: SUBJECT
+          value: 'Archieve rejected'
+        - name: MESSAGE
+          value: 'The archieve {{workflow.parameters.OBJECT}} was rejected due to checksum error. It will be deleted.'
 
   - name: avscan
     container: 
@@ -118,3 +136,20 @@ spec:
           archive:
             none: {}
     
+  - name: nytt-arkiv
+    container:
+      image: gcr.io/mottak/mailer
+      imagePullPolicy: Always
+      env:
+        - name: MAILGUN_DOMAIN
+          value: '{{workflow.parameters.MAILGUN_DOMAIN}}'
+        - name: MAILGUN_API_KEY
+          value: '{{workflow.parameters.MAILGUN_API_KEY}}'
+        - name: NAME
+          value: 'Per Buer'
+        - name: RECIPIENT
+          value: 'perbue@arkivverket.no'
+        - name: SUBJECT
+          value: 'Archieve processed'
+        - name: MESSAGE
+          value: 'The archieve {{workflow.parameters.OBJECT}} has been processed. Check the object store.'
