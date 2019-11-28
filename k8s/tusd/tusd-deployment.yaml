@@ -57,6 +57,16 @@ spec:
               secretKeyRef:
                 name: dsn
                 key: dsn
+          - name: MAILGUN_API_KEY
+            valueFrom:
+              secretKeyRef:
+                name: mailgun
+                key: apiKey
+          - name: MAILGUN_DOMAIN
+            valueFrom:
+              secretKeyRef:
+                name: mailgun
+                key: emailDomain
       volumes:
        - name: gcs
          secret:
