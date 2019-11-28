@@ -1,24 +1,23 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: invitation
-  namespace: argo
-
+  name: invitation-deployment
+  labels:
+    app: invitation-app
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      run: invitation
-
+      run: invitation-app
   template:
     metadata:
       labels:
-        run: invitation
+        run: invitation-app
     spec:
       containers:
       - image: gcr.io/mottak/invitation
+        name: invitation-container
         imagePullPolicy: Always
-        name: invitation
         ports:
         - containerPort: 80
           protocol: TCP
@@ -33,8 +32,8 @@ spec:
           # that provides the URL to tusd so we can
           # pick it here so the inviter can encode this in the URL
           # Override this:
-          - name: UPLOAD_URL
-            value: "http://35.228.155.81/files"
+          - name:   UPLOAD_URL
+            value: OVERRIDE_IN_PATCH
           - name: APPLICATION_SECRET
             valueFrom:
               secretKeyRef:

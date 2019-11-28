@@ -1,11 +1,10 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tusd
-  namespace: argo
+  name: tusd-deployment
 
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       run: tusd
@@ -17,7 +16,7 @@ spec:
       containers:
       - image: gcr.io/mottak/tusd
         imagePullPolicy: Always
-        name: tusd
+        name: tusd-container
         ports:
         - containerPort: 1080
           protocol: TCP
@@ -36,13 +35,13 @@ spec:
             # Override this if outside google:
             # If on AWS, this should be unset, methinks.
           - name: ENDPOINT
-            value: https://storage.googleapis.com
+            value: OVERRIDE_IN_PATCH
             # Override this?
           - name: AWS_REGION
-            value: us-east-1
+            value: OVERRIDE_IN_PATCH
             # Override this if you're not Per.
           - name: BUCKET
-            value: pilot-spool
+            value: OVERRIDE_IN_PATCH
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:

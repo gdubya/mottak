@@ -86,6 +86,9 @@ spec:
       artifacts:
         - name: avlog
           path: /tmp/av.log
+          archive:
+            none: {}
+
 
   - name: arkade5
     container:
@@ -112,4 +115,6 @@ spec:
       artifacts:
         - name: arkade-report
           path: /tmp/arkade.html
+          archive:
+            none: {}
     
