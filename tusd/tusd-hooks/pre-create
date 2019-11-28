@@ -113,7 +113,9 @@ def randomString(stringLength=10):
 def create_param_file(tmpfile, metadata, data):
     """ Create a metadata JSON-file for Argo to ingest """
     env = ['ENDPOINT', 'AWS_ACCESS_KEY_ID',
-           'AWS_SECRET_ACCESS_KEY', 'BUCKET', 'AWS_REGION']
+           'AWS_SECRET_ACCESS_KEY', 'BUCKET', 'AWS_REGION', 
+           'MAILGUN_DOMAIN',
+           'MAILGUN_API_KEY']
     with open(tmpfile, "w") as pfile:
         for key in env:
             print(key+':', os.getenv(key), file=pfile)
@@ -121,6 +123,9 @@ def create_param_file(tmpfile, metadata, data):
         print('OBJECT:', metadata['uuid'] + '.tar', file=pfile)
         print('CHECKSUM:', metadata['checksum'], file=pfile)
         print('ARCHIEVE_TYPE:', metadata['type'], file=pfile)
+        print('NAME:', metadata['name'],  file=pfile)
+        print('EMAIL:', metadata['email'], file=pfile)
+
 
 
 def argo_submit(paramfile):
@@ -155,6 +160,8 @@ try:
 except:
     eprint("Could not find invitation_id in JSON:", iid)
     exit(UNKNOWNIID)
+
+# print(f"Getting metadata for IID {iid}")
 
 connection = my_connect(create_db_access(os.getenv('DBSTRING')))
 
