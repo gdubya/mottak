@@ -35,3 +35,10 @@ How to setup a new enviroment:
 
 
 At this point everything should work.
+
+
+You can view the Argo UI by setting up a kube proxy:
+
+kubectl -n argo port-forward deployment/argo-ui 8001:8001
+
+Then visit http://localhost:8001/ to view the UI.
