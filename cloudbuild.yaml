@@ -9,6 +9,8 @@ steps:
     args: ["build", "--tag=gcr.io/$PROJECT_ID/tusd", "tusd"]
   - name: "gcr.io/cloud-builders/docker"
     args: ["build", "--tag=gcr.io/$PROJECT_ID/invitation", "invitation"]
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "--tag=gcr.io/$PROJECT_ID/mailer", "mailer"]
 images:
   [
     "gcr.io/$PROJECT_ID/s3-checksum256",
@@ -16,4 +18,5 @@ images:
     "gcr.io/$PROJECT_ID/arkade5",
     "gcr.io/$PROJECT_ID/tusd",
     "gcr.io/$PROJECT_ID/invitation",
+    "gcr.io/$PROJECT_ID/mailer"
   ]
