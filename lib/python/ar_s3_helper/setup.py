@@ -11,6 +11,6 @@ setup(name='ar_s3_helper',
       install_requires=[
           'boto3',
           'botocore',
-          's3transer'
+          's3transfer'
       ],
       zip_safe=False)
