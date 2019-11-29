@@ -62,3 +62,18 @@ def get_object(what, objectstore, bucket_name, object_name):
         return None
     return response[what]
 
+def delete_object(objectstore, bucket_name, object_name):
+    """Delete an object from an S3 bucket
+
+    :param objectstore: boto3.client object
+    :param bucket_name: string
+    :param object_name: string
+    :return: True if the referenced object was deleted, otherwise False
+    """
+
+    try:
+        objectstore.delete_object(Bucket=bucket_name, Key=object_name)
+    except ClientError as e:
+        logging.error(e)
+        return False
+    return True
