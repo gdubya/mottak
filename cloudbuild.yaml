@@ -1,52 +1,16 @@
 steps:
   - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "build",
-        "--tag=gcr.io/$PROJECT_ID/s3-checksum256",
-        "--cache-from=gcr.io/$PROJECT_ID/s3-checksum256:latest",
-        "s3-checksum256",
-      ]
+    args: ["build", "--tag=gcr.io/$PROJECT_ID/s3-checksum256", "s3-checksum256"]
   - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "build",
-        "--tag=gcr.io/$PROJECT_ID/s3-scan",
-        "--cache-from=gcr.io/$PROJECT_ID/s3-scan:latest",
-        "s3-scan",
-      ]
+    args: ["build", "--tag=gcr.io/$PROJECT_ID/s3-scan", "s3-scan"]
   - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "build",
-        "--tag=gcr.io/$PROJECT_ID/arkade5",
-        "--cache-from=gcr.io/$PROJECT_ID/arkade5:latest",
-        "arkade5",
-      ]
+    args: ["build", "--tag=gcr.io/$PROJECT_ID/arkade5", "arkade5"]
   - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "build",
-        "--tag=gcr.io/$PROJECT_ID/tusd",
-        "--cache-from=gcr.io/$PROJECT_ID/tusd:latest",
-        "tusd",
-      ]
+    args: ["build", "--tag=gcr.io/$PROJECT_ID/tusd", "tusd"]
   - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "build",
-        "--tag=gcr.io/$PROJECT_ID/invitation",
-        "--cache-from=gcr.io/$PROJECT_ID/invitation:latest",
-        "invitation",
-      ]
+    args: ["build", "--tag=gcr.io/$PROJECT_ID/invitation", "invitation"]
   - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "build",
-        "--tag=gcr.io/$PROJECT_ID/mailer",
-        "--cache-from=gcr.io/$PROJECT_ID/mailer:latest",
-        "mailer",
-      ]
+    args: ["build", "--tag=gcr.io/$PROJECT_ID/mailer", "mailer"]
 images:
   [
     "gcr.io/$PROJECT_ID/s3-checksum256",
@@ -54,5 +18,5 @@ images:
     "gcr.io/$PROJECT_ID/arkade5",
     "gcr.io/$PROJECT_ID/tusd",
     "gcr.io/$PROJECT_ID/invitation",
-    "gcr.io/$PROJECT_ID/mailer",
+    "gcr.io/$PROJECT_ID/mailer"
   ]
