@@ -1,3 +1,9 @@
+# Todo:
+# - move more things into secrets that are generally available
+# - improve readability if possible
+# - Figure out how we can prevents tasks with indirect dependencies to run.
+
+
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
@@ -31,6 +37,13 @@ spec:
           template: nytt-arkiv
           dependencies: [task-arkade5]
           when: "'{{tasks.task-kontroll.outputs.parameters.checksum_result}}' == 'ok'"
+          arguments:
+            artifacts:
+            - name: arkade-report
+              from: "{{tasks.task-arkade5.outputs.artifacts.arkade-report}}"
+            - name: avlog
+              from: "{{tasks.task-avscan.outputs.artifacts.avlog}}"
+
 
   - name: sjekksum-kontroll
     container: 
@@ -137,6 +150,12 @@ spec:
             none: {}
     
   - name: nytt-arkiv
+    inputs:
+      artifacts:
+      - name: arkade-report
+        path: /tmp/attachments/arkade-report.html     
+      - name: avlog
+        path: /tmp/attachments/avlog.txt
     container:
       image: gcr.io/mottak/mailer
       imagePullPolicy: Always
@@ -153,3 +172,5 @@ spec:
           value: 'Archieve processed'
         - name: MESSAGE
           value: 'The archieve {{workflow.parameters.OBJECT}} has been processed. Check the object store.'
+        - name: ATTACHMENTS
+          value: /tmp/attachments
