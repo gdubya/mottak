@@ -37,8 +37,12 @@ def find_attachments(path):
     else:
         return(files)
 
+def process_message(msg):
+    if msg and os.path.isfile(msg):
+        msg = open(msg,"r").read()
+    return msg
 
-def send_message(name, recipient, subject, message, attachments,verbose):
+def send_message(name, recipient, subject, message, attachments, verbose):
     if verbose:
         print(
             f"Sending message to '{name}' <{recipient}>\n",
@@ -59,7 +63,6 @@ def send_message(name, recipient, subject, message, attachments,verbose):
         print(f'Body:   {ret.text}')
 
 
-
 # Check that we got what we need to run:
 verify_environment()
 
@@ -70,6 +73,10 @@ message = os.getenv('MESSAGE')
 subject = os.getenv('SUBJECT')
 files = find_attachments(os.getenv('ATTACHMENTS'))
 
+# Process the message. If it starts with a / we load the file.
+message = process_message(message)
+print("Msg:", message)
+exit(0)
 
 # Transform the file list into something like this:
 #        files=[("attachment", ("test.jpg", open("files/test.jpg","rb").read())),
