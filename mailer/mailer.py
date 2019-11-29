@@ -76,7 +76,6 @@ files = find_attachments(os.getenv('ATTACHMENTS'))
 # Process the message. If it starts with a / we load the file.
 message = process_message(message)
 print("Msg:", message)
-exit(0)
 
 # Transform the file list into something like this:
 #        files=[("attachment", ("test.jpg", open("files/test.jpg","rb").read())),
