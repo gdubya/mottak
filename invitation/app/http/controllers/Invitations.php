@@ -148,11 +148,11 @@ class Invitations extends Controller
 	 */
 	public function store(): Redirect
 	{
+		$input = $this->validate(CreateInput::class);
+
 		try
 		{
 			$this->database->connection()->beginTransaction();
-
-			$input = $this->validate(CreateInput::class);
 
 			$invitation = new Invitation;
 
