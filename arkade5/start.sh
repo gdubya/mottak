@@ -36,4 +36,4 @@ dotnet /opt/Arkade5CLI-1.5.0/Arkivverket.Arkade.CLI.dll -a \
 
 # The report is available at /opt/output/Arkaderapport-$UUID.html
 # Move it to a know location so Argo can get at it.
-mv /opt/output/Arkaderapport-$UUID.html /tmp/arkade.html
+mv /opt/output/Arkaderapport-$OBJECT.html /tmp/arkade.html
