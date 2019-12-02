@@ -12,7 +12,6 @@ echo Archieve type: $ARCHIEVE_TYPE
 # Note that S3 will break if there is a trailing slash.
 # Todo: create a sed expressions that cleans better.
 host=$(echo $ENDPOINT|sed 's,https://,,g')
-basename=$(basename -s .tar $OBJECT)
 
 mkdir -p /opt
 cd /opt
@@ -25,14 +24,13 @@ s3cmd get \
      --host-bucket $host --host $host s3://$BUCKET/$OBJECT
 
 # Hent ut METS-fil fra tarballen:
-tar xf $OBJECT "$basename/dias-mets.xml"
-
+tar xf $OBJECT "$UUID/dias-mets.xml"
 
 # kjør arkade direkte 
 dotnet /opt/Arkade5CLI-1.5.0/Arkivverket.Arkade.CLI.dll -a \
     /opt/input/$OBJECT -p /opt/tmp -o /opt/output -s packing \
-    -m /opt/input/$basename/dias-mets.xml -t $ARCHIEVE_TYPE
+    -m /opt/input/$UUID/dias-mets.xml -t $ARCHIEVE_TYPE
 
-# The report is available at /opt/output/Arkaderapport-$basename.html
+# The report is available at /opt/output/Arkaderapport-$UUID.html
 # Move it to a know location so Argo can get at it.
-mv /opt/output/Arkaderapport-$basename.html /tmp/arkade.html
+mv /opt/output/Arkaderapport-$UUID.html /tmp/arkade.html
