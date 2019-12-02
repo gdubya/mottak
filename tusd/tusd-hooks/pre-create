@@ -84,6 +84,10 @@ def read_tusd_event():
     except ValueError as e:
         eprint("Error parsing JSON:", e)
         exit(JSONERROR)
+
+    with open('/tmp/json-event.json', 'w') as event_file:
+        json.dump(data, event_file)    
+
     return data
 
 
@@ -132,7 +136,7 @@ def create_param_file(tmpfile, metadata, data):
 
 
 def argo_submit(paramfile):
-    """ Submit a job to argo. Takes a JSON file as parameter """
+    """ Submit a job to argo. Takes a YAML file as parameter """
     argocmd = ["argo", "submit", "--parameter-file", paramfile, WORKFLOW]
     print("Argo cmd line:", argocmd)
     # Python 3.7
