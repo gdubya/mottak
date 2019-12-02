@@ -122,7 +122,8 @@ def create_param_file(tmpfile, metadata, data):
         for key in env:
             print(key+':', os.getenv(key), file=pfile)
         print('UUID:', metadata['uuid'], file=pfile)
-        print('OBJECT:', metadata['uuid'] + '.tar', file=pfile)
+        # Note that the file is stored in the objectstore without the .tar extension.
+        print('OBJECT:', metadata['uuid'], file=pfile)
         print('CHECKSUM:', metadata['checksum'], file=pfile)
         print('ARCHIEVE_TYPE:', metadata['type'], file=pfile)
         print('NAME:', metadata['name'],  file=pfile)
