@@ -172,20 +172,13 @@ except:
     exit(UNKNOWNIID)
 
 
-try:
-    filename = data['Upload']['Storage']['Key']
-    print(f"Filename is {filename}")
-except:
-    eprint("Could not key/filename in JSON. Dumping JSON:")
-    eprint(json.dump(data))
-    exit(JSONERROR)
-
-
 # print(f"Getting metadata for IID {iid}")
 
 connection = my_connect(create_db_access(os.getenv('DBSTRING')))
 
 metadata = get_metadata(connection, iid)
+
+# print(metadata)
 
 uuid = metadata['uuid']
 
@@ -200,6 +193,17 @@ if (my_name == 'pre-create'):
 
 # We assume that we're the post-create hook and we create an input-file for argo
 # and submit the workflow into argo.
+
+# Verify that we have a filename:
+try:
+    filename = data['Upload']['Storage']['Key']
+    print(f"Filename is {filename}")
+except:
+    eprint("Could not key/filename in JSON. Dumping JSON:")
+    eprint(json.dump(data))
+    exit(JSONERROR)
+
+
 
 if ((metadata) and ('uuid' in metadata)):
     create_param_file(param_file, metadata, data)
