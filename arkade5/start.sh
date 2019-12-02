@@ -24,11 +24,14 @@ s3cmd get \
      --host-bucket $host --host $host s3://$BUCKET/$OBJECT
 
 # Hent ut METS-fil fra tarballen:
-tar xf $OBJECT "$UUID/dias-mets.xml"
+# Døp om fila så ikke arkade får hetta.
+FILE=$OBJECT.tar
+mv $OBJECT $FILE
+tar xf $FILE "$UUID/dias-mets.xml"
 
 # kjør arkade direkte 
 dotnet /opt/Arkade5CLI-1.5.0/Arkivverket.Arkade.CLI.dll -a \
-    /opt/input/$OBJECT -p /opt/tmp -o /opt/output -s packing \
+    /opt/input/$FILE -p /opt/tmp -o /opt/output -s packing \
     -m /opt/input/$UUID/dias-mets.xml -t $ARCHIEVE_TYPE
 
 # The report is available at /opt/output/Arkaderapport-$UUID.html
