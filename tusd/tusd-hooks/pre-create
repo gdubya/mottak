@@ -137,7 +137,7 @@ def argo_submit(paramfile):
     # Python 3.7
     #submit = subprocess.run(argocmd, timeout=10, capture_output=True)
     # For Python 3.6 (tusd docker image has python3.6)
-    submit = subprocess.run(argocmd, timeout=10, stdout=PIPE, stderr=PIPE))
+    submit = subprocess.run(argocmd, timeout=10, stdout=PIPE, stderr=PIPE)
     if not (submit.returncode == 0):
         eprint("Argo submit failed")
         if submit.stderr:
