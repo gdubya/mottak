@@ -78,14 +78,14 @@ def my_disconnect(conn):
     conn.close()
 
 
-def read_tusd_event():
+def read_tusd_event(step):
     try:
         data = json.load(sys.stdin)
     except ValueError as e:
-        eprint("Error parsing JSON:", e)
+        eprint(f"Error parsing JSON({step}): {e}")
         exit(JSONERROR)
     # Enable this when debugging the events:
-    with open('/tmp/json-event.json', 'w') as event_file:
+    with open(f'/tmp/json-event-{step}.json', 'w') as event_file:
         json.dump(data, event_file)    
 
     return data
@@ -158,7 +158,7 @@ def argo_submit(paramfile):
 # This identifies it
 my_name = os.path.basename(__file__)
 
-data = read_tusd_event()
+data = read_tusd_event(step=my_name)
 param_file = '/tmp/argo-input-' + randomString()
 
 if not (os.getenv('DBSTRING')):
@@ -176,7 +176,8 @@ try:
     filename = data['Upload']['Storage']['Key']
     print(f"Filename is {filename}")
 except:
-    eprint("Could not key/filename in JSON.")
+    eprint("Could not key/filename in JSON. Dumping JSON:")
+    eprint(json.dump(data))
     exit(JSONERROR)
 
 
