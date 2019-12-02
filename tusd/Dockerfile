@@ -27,7 +27,7 @@ ENV GCS_SERVICE_ACCOUNT_FILE=/etc/gcs/gcs.json
 
 WORKDIR /srv/tusd-data
 EXPOSE 1080
-ENTRYPOINT ["tusd"]
-CMD ["--hooks-dir","/srv/tusd-hooks","--behind-proxy"]
+COPY start.sh /srv/
+ENTRYPOINT ["/srv/start.sh"]
 
 USER tusd
