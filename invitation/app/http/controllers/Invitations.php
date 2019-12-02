@@ -148,25 +148,38 @@ class Invitations extends Controller
 	 */
 	public function store(): Redirect
 	{
-		$input = $this->validate(CreateInput::class);
+		try
+		{
+			$this->database->connection()->beginTransaction();
 
-		$invitation = new Invitation;
+			$input = $this->validate(CreateInput::class);
 
-		$invitation->archive_type_id = $input['archive_type_id'];
+			$invitation = new Invitation;
 
-		$invitation->uuid = $input['uuid'];
+			$invitation->archive_type_id = $input['archive_type_id'];
 
-		$invitation->checksum = $input['checksum'];
+			$invitation->uuid = $input['uuid'];
 
-		$invitation->is_sensitive = $input['is_sensitive'] === '1' ? true : false;
+			$invitation->checksum = $input['checksum'];
 
-		$invitation->name = $input['name'];
+			$invitation->is_sensitive = $input['is_sensitive'] === '1' ? true : false;
 
-		$invitation->email = $input['email'];
+			$invitation->name = $input['name'];
 
-		$invitation->save();
+			$invitation->email = $input['email'];
 
-		$this->sendEmail($invitation->email, $this->buildUrl($invitation));
+			$invitation->save();
+
+			$this->sendEmail($invitation->email, $this->buildUrl($invitation));
+
+			$this->database->connection()->commitTransaction();
+		}
+		catch(Throwable $e)
+		{
+			$this->database->connection()->rollBackTransaction();
+
+			throw $e;
+		}
 
 		return $this->redirectResponse('invitations.receipt', ['id' => $invitation->id]);
 	}
