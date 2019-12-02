@@ -11,7 +11,7 @@ use mako\http\response\senders\Redirect;
 use mako\http\routing\Controller;
 use mako\validator\input\traits\InputValidationTrait;
 use mako\view\ViewFactory;
-use Symfony\Component\Mailer\Bridge\Mailgun\Http\MailgunTransport;
+use Symfony\Component\Mailer\Bridge\Mailgun\Transport\MailgunHttpTransport;
 use Symfony\Component\Mailer\Mailer;
 use Symfony\Component\Mime\Email;
 use Throwable;
@@ -136,7 +136,7 @@ class Invitations extends Controller
 
 		$email->html("<a href='{$url}'>{$url}</a>");
 
-		$transport = new MailgunTransport(getenv('MAILGUN_API_KEY'), getenv('MAILGUN_DOMAIN'));
+		$transport = new MailgunHttpTransport(getenv('MAILGUN_API_KEY'), getenv('MAILGUN_DOMAIN'));
 
 		$mailer = new Mailer($transport);
 
