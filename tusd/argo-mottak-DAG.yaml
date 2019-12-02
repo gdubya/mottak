@@ -2,6 +2,9 @@
 # - move more things into secrets that are generally available
 # - improve readability if possible
 # - Figure out how we can prevents tasks with indirect dependencies to run.
+# - Perhaps make the arkade-report and the avlog into globalName artifacts so the can 
+# be mocked by other tasks as a way to work around failure tasks failing the flow.
+
 
 
 apiVersion: argoproj.io/v1alpha1
@@ -23,6 +26,11 @@ spec:
         - name: task-sjekksum-feil
           template: sjekksum-feil
           dependencies: [task-kontroll]
+          when: "'{{tasks.task-kontroll.outputs.parameters.checksum_result}}' != 'ok'"
+          # Delete the object after notifying the user.
+        - name: task-delete
+          template: delete
+          dependencies: [task-sjekksum-feil]
           when: "'{{tasks.task-kontroll.outputs.parameters.checksum_result}}' != 'ok'"
         - name: task-avscan
           template: avscan
@@ -90,6 +98,24 @@ spec:
         - name: MESSAGE
           value: 'The archieve {{workflow.parameters.OBJECT}} was rejected due to checksum error. It will be deleted.'
 
+  - name: delete
+    container:
+      image: gcr.io/mottak/s3-delete
+      imagePullPolicy: Always
+      env:
+        - name: ENDPOINT
+          value:  '{{workflow.parameters.ENDPOINT}}'
+        - name: REGION_NAME
+          value: 'us-east-1'
+        - name: AWS_ACCESS_KEY_ID
+          value: '{{workflow.parameters.AWS_ACCESS_KEY_ID}}'
+        - name: AWS_SECRET_ACCESS_KEY
+          value: '{{workflow.parameters.AWS_SECRET_ACCESS_KEY}}'
+        - name: BUCKET
+          value:  '{{workflow.parameters.BUCKET}}'
+        - name: OBJECT
+          value: '{{workflow.parameters.OBJECT}}'
+
   - name: avscan
     container: 
       image: gcr.io/mottak/s3-scan
@@ -156,6 +182,14 @@ spec:
         path: /tmp/attachments/arkade-report.html     
       - name: avlog
         path: /tmp/attachments/avlog.txt
+      - name: message
+        path: /tmp/message
+        raw:
+          data: |
+            An archieve ({{workflow.parameters.OBJECT}}) of type {{workflow.parameters.ARCHIEVE_TYPE}} has been processed.
+            This archieve is stored in the bucket '{{workflow.parameters.BUCKET}}' at {{workflow.parameters.ENDPOINT}}.
+            Attached to this email is the report from Arkade5 and the log from the anti-virus scan.
+            Please review.
     container:
       image: gcr.io/mottak/mailer
       imagePullPolicy: Always
@@ -165,12 +199,12 @@ spec:
         - name: MAILGUN_API_KEY
           value: '{{workflow.parameters.MAILGUN_API_KEY}}'
         - name: NAME
-          value: 'Per Buer'
+          value: '{{workflow.parameters.NAME}}'
         - name: RECIPIENT
-          value: 'perbue@arkivverket.no'
+          value: '{{workflow.parameters.EMAIL}}'
         - name: SUBJECT
           value: 'Archieve processed'
         - name: MESSAGE
-          value: 'The archieve {{workflow.parameters.OBJECT}} has been processed. Check the object store.'
+          value: /tmp/message
         - name: ATTACHMENTS
           value: /tmp/attachments
