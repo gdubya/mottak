@@ -7,6 +7,8 @@ import psycopg2
 import psycopg2.extras
 import string
 import subprocess
+# For python 3.6
+from subprocess import PIPE
 import random
 import re  # for parsing the DBSTRING
 
@@ -132,7 +134,10 @@ def argo_submit(paramfile):
     """ Submit a job to argo. Takes a JSON file as parameter """
     argocmd = ["argo", "submit", "--parameter-file", paramfile, WORKFLOW]
     print("Argo cmd line:", argocmd)
-    submit = subprocess.run(argocmd, timeout=10, capture_output=True)
+    # Python 3.7
+    #submit = subprocess.run(argocmd, timeout=10, capture_output=True)
+    # For Python 3.6 (tusd docker image has python3.6)
+    submit = subprocess.run(argocmd, timeout=10, stdout=PIPE, stderr=PIPE))
     if not (submit.returncode == 0):
         eprint("Argo submit failed")
         if submit.stderr:
