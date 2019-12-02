@@ -84,7 +84,7 @@ def read_tusd_event():
     except ValueError as e:
         eprint("Error parsing JSON:", e)
         exit(JSONERROR)
-
+    # Enable this when debugging the events:
     with open('/tmp/json-event.json', 'w') as event_file:
         json.dump(data, event_file)    
 
@@ -126,8 +126,8 @@ def create_param_file(tmpfile, metadata, data):
         for key in env:
             print(key+':', os.getenv(key), file=pfile)
         print('UUID:', metadata['uuid'], file=pfile)
-        # Note that the file is stored in the objectstore without the .tar extension.
-        print('OBJECT:', metadata['uuid'], file=pfile)
+        # Note: tusd gives the file a random name.
+        print('OBJECT:', data['Upload']['Storage']['Key'], file=pfile)
         print('CHECKSUM:', metadata['checksum'], file=pfile)
         print('ARCHIEVE_TYPE:', metadata['type'], file=pfile)
         print('NAME:', metadata['name'],  file=pfile)
@@ -170,6 +170,15 @@ try:
 except:
     eprint("Could not find invitation_id in JSON:", iid)
     exit(UNKNOWNIID)
+
+
+try:
+    filename = data['Upload']['Storage']['Key']
+    print(f"Filename is {filename}")
+except:
+    eprint("Could not key/filename in JSON.")
+    exit(JSONERROR)
+
 
 # print(f"Getting metadata for IID {iid}")
 
