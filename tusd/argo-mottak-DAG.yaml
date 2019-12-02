@@ -168,6 +168,8 @@ spec:
           value: '{{workflow.parameters.CHECKSUM}}'
         - name: ARCHIEVE_TYPE
           value: '{{workflow.parameters.ARCHIEVE_TYPE}}'
+        - name: UUID
+          value: '{{workflow.parameters.UUID}}'
     outputs:
       artifacts:
         - name: arkade-report
