@@ -22,13 +22,15 @@ RESULT = '/tmp/result'
 def checksum():
     sha256_hash = hashlib.sha256()
     s3 = ar.get_s3_handle()
+    bucket = os.getenv('BUCKET')
+    file = os.getenv('OBJECT')
     if s3 is None:
         logging.error("S3 client handle not defined")
         raise Exception('S3 client handle not defined')
     file_stream = ar.get_object(
-        'Body', s3, os.getenv('BUCKET'), os.getenv('OBJECT'))
+        'Body', s3, bucket, file)
     if file_stream is None:
-        logging.error("Could not open file.")
+        logging.error(f"Could not open file: {file} on {bucket}")
         raise Exception('Could not get S3 object handle')
 
     for byte_block in iter(lambda: file_stream.read(4096), b""):
