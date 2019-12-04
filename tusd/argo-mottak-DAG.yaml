@@ -15,9 +15,6 @@ spec:
   entrypoint: mottak
   templates:
   - name: mottak
-    # Enable workflow logging to artifacts stored in objectstore (doesn't seem to work)
-    archiveLocation:
-      archiveLogs: true
     dag:
       tasks:
           # Todo - make the condition less verbose so we don't have to state every condition. dont know how.
