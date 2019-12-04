@@ -77,3 +77,44 @@ def delete_object(objectstore, bucket_name, object_name):
         logging.error(e)
         return False
     return True
+
+
+def copy_object(objectstore, bucket_name, object_name, target):
+    """Copies an object from an S3 bucket to aonther object with the name target.
+
+    :param objectstore: boto3.client object
+    :param bucket_name: string
+    :param object_name: string
+    :param target: string
+    :return: True if the referenced object was deleted, otherwise False
+    """
+    copy_source = {'Bucket': bucket_name, 'Key': object_name}
+
+    try:
+        s3.copy_object(CopySource=copy_source, Bucket=bucket_name,
+                       Key=target)
+    except ClientError as e:
+        logging.error(e)
+        return False
+    
+    return True
+
+
+def rename_object(objectstore, bucket_name, object_name, target):
+    """Copies an object from an S3 bucket to aonther object with the name target. 
+    Then deletes the original thus renaming this in a very cumbersome manner.s
+
+    :param objectstore: boto3.client object
+    :param bucket_name: string
+    :param object_name: string
+    :param target: string
+    :return: True if the referenced object was deleted, otherwise False
+    """
+
+    try:
+        copy_object(objectstore, bucket_name, object_name, target)
+        delete_object(objectstore, bucket_name, object_name)
+    except ClientError as e:
+        logging.error(e)
+        return False
+    return True
