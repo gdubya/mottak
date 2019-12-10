@@ -11,9 +11,9 @@ steps:
     args: ["build", "--tag=gcr.io/$PROJECT_ID/invitation", "invitation"]
   - name: "gcr.io/cloud-builders/docker"
     args: ["build", "--tag=gcr.io/$PROJECT_ID/mailer", "mailer"]
-    - name: "gcr.io/cloud-builders/docker"
+  - name: "gcr.io/cloud-builders/docker"
     args: ["build", "--tag=gcr.io/$PROJECT_ID/s3-delete", "s3-delete"]
-    - name: "gcr.io/cloud-builders/docker"
+  - name: "gcr.io/cloud-builders/docker"
     args: ["build", "--tag=gcr.io/$PROJECT_ID/s3-rename", "s3-rename"]
 images:
   [
