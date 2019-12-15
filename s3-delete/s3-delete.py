@@ -11,20 +11,21 @@ ENVERROR = 1
 DELETEERROR = 2
 
 def delete():
-    # You can't have a variable named object, silly.
-    file = os.getenv('OBJECT')
+    filename = os.getenv('OBJECT')
     bucket = os.getenv('BUCKET')
 
-    s3 = ar.get_s3_handle()
+    s3 = ar.get_s3_resource()
     if s3 is None:
         logging.error("S3 client handle not defined")
         raise Exception('S3 client handle not defined')
-    if ar.delete_object(objectstore=s3, bucket_name=bucket,
-                        object_name=file):
-        logging.info(f"Object deleted {file} succesfully from {bucket}")
+
+    obj = s3.Object(bucket, filename)
+
+    if obj.delete():
+        logging.info(f"Object deleted {filename} succesfully from {bucket}")
         return(True)
     else:
-        logging.error(f"Failed to delete {file} from {bucket}")
+        logging.error(f"Failed to delete {filename} from {bucket}")
         return(False)
 
 

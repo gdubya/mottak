@@ -30,23 +30,17 @@ def get_clam():
 
 
 def scan():
+    bucket = os.getenv('BUCKET')
+    filename = os.getenv('OBJECT')
     msgs = [];
 
-    s3 = ar.get_s3_handle()
+    s3 = ar.get_s3_resource()
     if s3 is None:
         logging.error("S3 client handle not defined")
         raise Exception('S3 client handle not defined')
-    size = ar.get_object('ContentLength', s3, os.getenv(
-        'BUCKET'), os.getenv('OBJECT'))
-    # max_size = int(os.getenv('MAX_SCAN_SIZE') or 1024^3)
-    # Don't scan files larger than ... 1GB
-    #if not max_size:
-    #    max_size = 1024 ^ 3
-    #if (size > max_size):
-    #    msgs.append("Not scanning as object is bigger than MAX_SCAN_SIZE")
-    #    return None
-    file_stream = ar.get_object(
-        'Body', s3, os.getenv('BUCKET'), os.getenv('OBJECT'))
+    obj = s3.Object(bucket, filename)
+    ret = obj.get()
+    file_stream = ret['Body']
     if file_stream is None:
         logging.error("Could not open file.")
         raise Exception('Could not get S3 object handle')
@@ -59,7 +53,6 @@ def scan():
         print("AV Scan", file=log_file)
         print("Bucket:", os.getenv('BUCKET'), "@",os.getenv('REGION_NAME'),'/', os.getenv('ENDPOINT'), file=log_file)
         print("Object:", os.getenv('OBJECT'), file=log_file)
-        print("Size:", size, file=log_file)
         print("Version:", version, file=log_file)
         print("Messages: ", "\n".join(msgs), file=log_file);
         print("No virus found" if not result else result, file=log_file)
