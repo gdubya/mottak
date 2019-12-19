@@ -1,16 +1,15 @@
 version: 0.2
 
 phases:
-  install:
-    runtime-versions:
-      docker: 18
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
   build:
     commands:
-      - echo Build started on `date`
+
+      - echo Build started on `date` with the following environment
+      - env
       - echo Building the Docker images...          
       - docker build -t $IMAGE_REPO_NAME/s3-checksum256:$IMAGE_TAG s3-checksum256
       - docker tag $IMAGE_REPO_NAME/s3-checksum256:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME/s3-checksum256:$IMAGE_TAG      
