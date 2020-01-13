@@ -1,5 +1,5 @@
 #!/bin/sh
 
-kubectl create secret generic mailgun  \
+kubectl -n argo create secret generic mailgun  \
 --from-file=apiKey=./mailgun-apiKey \
 --from-file=emailDomain=./mailgun-emailDomain

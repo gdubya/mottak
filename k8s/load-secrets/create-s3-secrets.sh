@@ -4,5 +4,5 @@
 # accessKeySecret - the AWS key
 # secretKeySecret - the AWS secret key
 
-kubectl create secret generic s3-cred  --from-file=accessKeySecret=./accessKeySecret --from-file=secretKeySecret=./secretKeySecret
+kubectl -n argo create secret generic s3-cred  --from-file=accessKeySecret=./s3-accessKeySecret --from-file=secretKeySecret=./s3-secretKeySecret
 

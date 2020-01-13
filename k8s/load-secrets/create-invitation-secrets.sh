@@ -1,4 +1,4 @@
 #!/bin/sh
 
-kubectl create secret generic invitation  \
+kubectl -n argo create secret generic invitation  \
 --from-file=applicationSecret=./invitation-applicationSecret
