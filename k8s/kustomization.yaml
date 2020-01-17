@@ -12,6 +12,7 @@ namespace: argo
 
 patches:
   - patches.yaml
+  - patch-artifacts.yaml
 
 #patchesJson6902:
 #- target:

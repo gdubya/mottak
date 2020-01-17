@@ -15,7 +15,7 @@ spec:
         run: invitation-app
     spec:
       containers:
-      - image: gcr.io/mottak/invitation
+      - image: arkivverket/invitation
         name: invitation-container
         imagePullPolicy: Always
         ports:

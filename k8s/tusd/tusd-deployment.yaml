@@ -14,7 +14,7 @@ spec:
         run: tusd
     spec:
       containers:
-      - image: gcr.io/mottak/tusd
+      - image: arkivverket/tusd
         imagePullPolicy: Always
         name: tusd-container
         ports:
@@ -27,10 +27,6 @@ spec:
             port: 1080
           initialDelaySeconds: 10
           periodSeconds: 10
-        volumeMounts:
-          - name: gcs
-            mountPath: "/etc/gcs"
-            readOnly: true
         env:
             # Override this if outside google:
             # If on AWS, this should be unset, methinks.
@@ -67,7 +63,3 @@ spec:
               secretKeyRef:
                 name: mailgun
                 key: emailDomain
-      volumes:
-       - name: gcs
-         secret:
-           secretName: gcs-cred
