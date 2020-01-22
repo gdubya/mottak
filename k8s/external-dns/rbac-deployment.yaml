@@ -43,6 +43,9 @@ metadata:
   name: external-dns
   namespace: argo
 spec:
+  selector:
+    matchLabels:
+      app: external-dns
   strategy:
     type: Recreate
   template:
@@ -58,18 +61,19 @@ spec:
         - --source=service
         - --source=ingress
         - --provider=aws
-        - --policy=upsert-only # would prevent ExternalDNS from deleting any records, omit to enable full synchronization
         - --registry=txt
-        - --txt-owner-id=my-identifier
+        - --txt-owner-id=external-dns
         - --log-level=debug
+        - --aws-zone-type=public
+        # - --policy=upsert-only # would prevent ExternalDNS from deleting any records, omit to enable full synchronization
         env:
           - name: AWS_ACCESS_KEY_ID
             valueFrom:
               secretKeyRef:
-                name: dns-cred
+                name: route53-cred
                 key: accessKeySecret
           - name: AWS_SECRET_ACCESS_KEY
             valueFrom:
               secretKeyRef:
-                name: dns-cred
+                name: route53-cred
                 key: secretKeySecret
