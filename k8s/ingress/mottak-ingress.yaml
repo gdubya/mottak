@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: mottak-ingress
+  namespace: argo
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: mottak-ingress
+spec:
+  tls:
+    - hosts:
+      - mottak.arkivverket.dev
+      secretName: tls-mottak-ingress
+  rules:
+  - http:
+      paths:
+      - path: /invitation/*
+        backend:
+          serviceName: invitation-service
+          servicePort: 80
+      - path: /tusd/*
+        backend:
+          serviceName: tusd-service
+          servicePort: 80
