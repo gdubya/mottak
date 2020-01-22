@@ -42,8 +42,8 @@ spec:
           - name: DBSTRING
             valueFrom: 
               secretKeyRef:
-                name: dsn
-                key: dsn
+                name: invitation-dsn
+                key: invitation-dsn
           - name: MAILGUN_API_KEY
             valueFrom:
               secretKeyRef:
