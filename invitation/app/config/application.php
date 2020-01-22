@@ -31,7 +31,7 @@ return
 	 *
 	 * Set the default timezone used by various PHP date functions.
 	 */
-	'timezone' => 'UTC',
+	'timezone' => 'Europe/Oslo',
 
 	/*
 	 * ---------------------------------------------------------
