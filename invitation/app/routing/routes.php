@@ -6,7 +6,12 @@ use mako\http\routing\Routes;
 
 $routes->group(['namespace' => 'app\http\controllers', 'middleware' => ['security_headers', 'input_validation']], function(Routes $routes): void
 {
+	# Todo: This should be replaced with a simpler service that checks DB connectivity. It is only used by the heartbeat function in the
+	# service and ingress controllers.
+	$routes->get('/', 'Invitations::start', 'invitations.start');
+
 	$routes->get('/invitation/', 'Invitations::start', 'invitations.start');
+
 
 	$routes->post('/invitation/', 'Invitations::parseXml');
 
