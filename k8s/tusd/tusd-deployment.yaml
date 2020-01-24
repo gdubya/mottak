@@ -13,6 +13,11 @@ spec:
       labels:
         run: tusd
     spec:
+      volumes:
+        - name: gcs
+          secret:
+            secretName: gcs-cred
+
       containers:
       - image: arkivverket/tusd
         imagePullPolicy: Always
@@ -27,6 +32,12 @@ spec:
             port: 1080
           initialDelaySeconds: 10
           periodSeconds: 10
+        # If using GCS as a backend we must use the native interface
+        # because of compat issues tusd <--> gcs
+        volumeMounts:
+          - name: gcs
+            mountPath: "/etc/gcs"
+            readOnly: true
         env:
             # Override this if outside google:
             # If on AWS, this should be unset, methinks.
@@ -35,24 +46,28 @@ spec:
             # Override this?
           - name: AWS_REGION
             value: OVERRIDE_IN_PATCH
-            # Override this if you're not Per.
+            # Override this 
           - name: BUCKET
             value: OVERRIDE_IN_PATCH
-          - name: AWS_ACCESS_KEY_ID
-            valueFrom:
-              secretKeyRef:
-                name: s3-cred
-                key: accessKeySecret
-          - name: AWS_SECRET_ACCESS_KEY
-            valueFrom:
-              secretKeyRef:
-                name: s3-cred
-                key: secretKeySecret
+#      Comment out if using S3.
+          - name: GCS_SERVICE_ACCOUNT_FILE
+            value: /etc/gcs/gcs.json
+#         If using S3 you wanna uncomment these
+#          - name: AWS_ACCESS_KEY_ID
+#            valueFrom:
+#              secretKeyRef:
+#                name: s3-cred
+#                key: accessKeySecret
+#          - name: AWS_SECRET_ACCESS_KEY
+#            valueFrom:
+#              secretKeyRef:
+#                name: s3-cred
+#                key: secretKeySecret
           - name: DBSTRING
             valueFrom: 
               secretKeyRef:
-                name: dsn
-                key: dsn
+                name: invitation-dsn
+                key: invitation-dsn
           - name: MAILGUN_API_KEY
             valueFrom:
               secretKeyRef:
