@@ -1,9 +1,9 @@
-FROM python:3.7-alpine
+FROM python:3.8-alpine
 
 RUN apk add --no-cache clamav clamav-dev wget git
-RUN wget -O /var/lib/clamav/main.cvd http://database.clamav.net/main.cvd && \
-    wget -O /var/lib/clamav/daily.cvd http://database.clamav.net/daily.cvd && \
-    wget -O /var/lib/clamav/bytecode.cvd http://database.clamav.net/bytecode.cvd && \
+RUN wget -nv -O /var/lib/clamav/main.cvd http://database.clamav.net/main.cvd && \
+    wget -nv -O /var/lib/clamav/daily.cvd http://database.clamav.net/daily.cvd && \
+    wget -nv -O /var/lib/clamav/bytecode.cvd http://database.clamav.net/bytecode.cvd && \
     chown clamav:clamav /var/lib/clamav/*.cvd
 RUN mkdir -p /run/clamav && \
     chown clamav:clamav /run/clamav
