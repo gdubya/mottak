@@ -21,10 +21,6 @@ COPY tusd-hooks/pre-create  /srv/tusd-hooks/post-finish
 COPY argo-mottak-DAG.yaml /srv/
 COPY --from=argocli /bin/argo /usr/local/bin/argo
 
-# Set the environment variable to grants access to GCS
-# This should be referenced in the deployment.yaml
-ENV GCS_SERVICE_ACCOUNT_FILE=/etc/gcs/gcs.json
-
 WORKDIR /srv/tusd-data
 EXPOSE 1080
 COPY start.sh /srv/
