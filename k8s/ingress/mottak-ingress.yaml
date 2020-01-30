@@ -9,15 +9,20 @@ spec:
   tls:
     - hosts:
       - mottak.arkivverket.dev
-      secretName: tls-mottak-ingress
+      - invitation.mottak.arkivverket.dev
+      - tusd.mottak.arkivverket.dev
+      - dashboard.mottak.arkivverket.dev
+      secretName: tls-mottak-ingress      
   rules:
-  - http:
-      paths:
-      - path: /invitation/*
-        backend:
+  - host: invitation.mottak.arkivverket.dev
+    http:
+      paths:  
+      - backend:
           serviceName: invitation-service
           servicePort: 80
-      - path: /tusd/*
-        backend:
-          serviceName: tusd-service
-          servicePort: 80
+  - host: tusd.mottak.arkivverket.dev
+    http:
+      paths:
+        - backend:
+            serviceName: tusd-service
+            servicePort: 80
