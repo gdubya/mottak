@@ -52,7 +52,7 @@ spec:
 
   - name: sjekksum-kontroll
     container: 
-      image: gcr.io/mottak/s3-checksum256
+      image: arkivverket/s3-checksum256
       imagePullPolicy: Always
       env:
         - name: ENDPOINT
@@ -79,7 +79,7 @@ spec:
   # Her kan vi gjøre ting som å varsle arkivskaper om at jobben ikke avvist.
   - name: sjekksum-feil
     container:
-      image: gcr.io/mottak/mailer
+      image: arkivverket/mailer
       imagePullPolicy: Always
       env:
         - name: MAILGUN_DOMAIN
@@ -97,7 +97,7 @@ spec:
 
   - name: delete
     container:
-      image: gcr.io/mottak/s3-delete
+      image: arkivverket/s3-delete
       imagePullPolicy: Always
       env:
         - name: ENDPOINT
@@ -115,7 +115,7 @@ spec:
 
   - name: avscan
     container: 
-      image: gcr.io/mottak/s3-scan
+      image: arkivverket/s3-scan
       imagePullPolicy: Always
       env:
         - name: ENDPOINT
@@ -146,7 +146,7 @@ spec:
 
   - name: arkade5
     container:
-      image: gcr.io/mottak/arkade5
+      image: arkivverket/arkade5
       imagePullPolicy: Always
       env:
         - name: ENDPOINT
@@ -189,7 +189,7 @@ spec:
             Attached to this email is the report from Arkade5 and the log from the anti-virus scan.
             Please review.
     container:
-      image: gcr.io/mottak/mailer
+      image: arkivverket/mailer
       imagePullPolicy: Always
       env:
         - name: MAILGUN_DOMAIN
