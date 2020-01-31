@@ -24,43 +24,53 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def get_s3_handle():
-    """Create an S3 client object based on ENDPOINT, REGION_NAME using AWS_ACCESS_KEY_ID
-    and AWS_SECRET_ACCESS_KEY
+def get_s3_handle(**kwargs):
+    """Create an S3 _CLIENT_ object based on ENDPOINT, REGION_NAME using AWS_ACCESS_KEY_ID
+    and AWS_SECRET_ACCESS_KEY with options to override these.
+
+    Client objects are low level APIs and should be avoided. Use get_s3_resource() if you can.
+
+    :param: endpoint...
     :return: boto3.client object. If error, return None.
     """
+
+    endpoint              = kwargs.get('endpoint', os.getenv('ENDPOINT'))
+    aws_access_key_id     = kwargs.get('aws_access_key_id', os.getenv('AWS_ACCESS_KEY_ID'))
+    aws_secret_access_key = kwargs.get('aws_secret_access_key', os.getenv('AWS_SECRET_ACCESS_KEY'))
+    region_name           = kwargs.get('region_name', os.getenv('REGION_NAME'))
 
     client_handle = None
 
     try:
         client_handle = boto3.client(service_name='s3',
-                                     endpoint_url=os.getenv('ENDPOINT'),
-                                     aws_access_key_id=os.getenv(
-                                         'AWS_ACCESS_KEY_ID'),
-                                     aws_secret_access_key=os.getenv(
-                                         'AWS_SECRET_ACCESS_KEY'),
-                                     region_name=os.getenv('REGION_NAME'))
+                                     endpoint_url=endpoint,
+                                     aws_access_key_id=aws_access_key_id,
+                                     aws_secret_access_key=aws_secret_access_key,
+                                     region_name=region_name)
     except Exception as e:
         logging.error(e, stack_info=True)
         return None
     return client_handle
 
-def get_s3_resource():
-    """Create an S3 resource object based on ENDPOINT, REGION_NAME using AWS_ACCESS_KEY_ID
+def get_s3_resource(**kwargs):
+    """Create an S3 _RESOURCE_ object based on ENDPOINT, REGION_NAME using AWS_ACCESS_KEY_ID
     and AWS_SECRET_ACCESS_KEY
 
     :return: boto3.client object. If error, return None.
     """
 
+    endpoint              = kwargs.get('endpoint', os.getenv('ENDPOINT'))
+    aws_access_key_id     = kwargs.get('aws_access_key_id', os.getenv('AWS_ACCESS_KEY_ID'))
+    aws_secret_access_key = kwargs.get('aws_secret_access_key', os.getenv('AWS_SECRET_ACCESS_KEY'))
+    region_name           = kwargs.get('region_name', os.getenv('REGION_NAME'))
+
     client_handle = None
     try:
         client_handle = boto3.resource(service_name='s3',
-                                       endpoint_url=os.getenv('ENDPOINT'),
-                                       aws_access_key_id=os.getenv(
-                                           'AWS_ACCESS_KEY_ID'),
-                                       aws_secret_access_key=os.getenv(
-                                           'AWS_SECRET_ACCESS_KEY'),
-                                       region_name=os.getenv('REGION_NAME'))
+                                       endpoint_url=endpoint,
+                                       aws_access_key_id=aws_access_key_id,
+                                       aws_secret_access_key=aws_secret_access_key,
+                                       region_name=region_name)
     except Exception as e:
         logging.error(e, stack_info=True)
         return None
