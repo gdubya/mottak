@@ -2,26 +2,35 @@ FROM ubuntu:latest
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update
-RUN apt-get -y install software-properties-common && add-apt-repository ppa:libreoffice/ppa
-RUN apt-get -y -q install gdb libreoffice libreoffice-writer ure \
-    libreoffice-java-common libreoffice-core libreoffice-common openjdk-8-jre \
-    fonts-opensymbol hyphen-fr hyphen-de hyphen-en-us hyphen-it hyphen-ru \
+RUN apt-get -y --no-install-recommends install software-properties-common && \
+    add-apt-repository ppa:libreoffice/ppa && \
+    apt-add-repository multiverse
+RUN apt-get -y --no-install-recommends -q install libreoffice libreoffice-writer \
+    libreoffice-java-common default-jre \
+    fonts-opensymbol hyphen-no hyphen-en-us hyphen-it \
     fonts-dejavu fonts-dejavu-core fonts-dejavu-extra fonts-droid-fallback \
     fonts-dustin fonts-f500 fonts-fanwood fonts-freefont-ttf fonts-liberation \
     fonts-lmodern fonts-lyx fonts-sil-gentium fonts-texgyre fonts-tlwg-purisa
-RUN apt-get -y -q remove libreoffice-gnome
+
+# MS Core Fonts:
+
+RUN echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections
+RUN apt-get install -y --no-install-recommends fontconfig ttf-mscorefonts-installer
+COPY localfonts.conf /etc/fonts/local.conf
+RUN fc-cache -f -v
+
 RUN adduser --home=/home/libreoffice --disabled-password --gecos "" --shell=/bin/bash libreoffice
 WORKDIR /opt/
 
 # Python3:
-RUN apt-get -y install python3 python3-pip git
+RUN apt-get -y --no-install-recommends install python3 python3-pip git python3-setuptools
 COPY requirements.txt /opt/
 RUN pip3 install --no-cache-dir -r requirements.txt
 RUN pip3 install -e 'git+https://github.com/arkivverket/mottak#egg=ar_s3_helper&subdirectory=lib/python/ar_s3_helper'
 
 # Siegfried, which requires Go
 
-RUN apt-get -y install golang-go
+RUN apt-get -y --no-install-recommends install golang-go
 
 ENV PATH="/root/go/bin:${PATH}"
 RUN go get github.com/richardlehane/siegfried/cmd/sf
@@ -33,6 +42,11 @@ RUN sf -update
 COPY start.sh /opt/
 COPY pronomtypes.json /opt/
 COPY s3-tar-converter1.py /opt/
+
+
+# TODO
+# test.exec_run('libreoffice --headless --cat "test"', user='libreoffice')
+
 
 # start up clamd and run the scanner - can be overriden when debugging.
 CMD ["/opt/start.sh"]
