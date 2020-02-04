@@ -12,6 +12,8 @@ from subprocess import PIPE
 import csv   # parsing siegfried output
 import io    # string to IO
 
+import tempfile
+
 import re
 
 import json
@@ -19,8 +21,10 @@ import json
 from dotenv import load_dotenv
 load_dotenv()
 
+
 global pronom_types       # dict resulting from parsing the pronom definitions
 global csv_log            # dict for logging convertions
+
 
 class S3ObjectWithTell:
     """
@@ -67,10 +71,10 @@ def process_sf_csv(output):
     return reader_list
 
 
-def siegfried(path, file):
+def siegfried(file):
     sf_run = ''
 
-    sf_run = sp.run(['sf', '-csv', f'{path}/{file}'], stdout=PIPE)
+    sf_run = sp.run(['sf', '-csv', file], stdout=PIPE)
     res = process_sf_csv(sf_run.stdout.decode('utf-8´'))
 
     return(next(res))
@@ -86,6 +90,23 @@ def get_action(id, format):
     return action
 
 
+
+def upload_csv(objectname, loglist, bucket, firstrow):
+    csvfile = tempfile.NamedTemporaryFile('w')
+    writer =  csv.writer(csvfile, dialect='excel')
+    writer.writerow(firstrow) # csv headers.
+    for row in loglist:
+        writer.writerow(row)
+    try:
+        bucket.upload_file(csvfile.name, objectname)
+    except Exception as e:
+        logging.error("Error while uploading CSV")
+        raise
+    finally:
+        # Close and delete the file.
+        csvfile.close()
+
+
 # Converters
 """
 convert_libreoffice(path, file)
@@ -96,7 +117,8 @@ Calls out to libreoffice in headless to convert a file to PDF.
 def convert_libreoffice(path, file):
     res = None
     try:
-        cmdline = ['libreoffice', '--headless', '--convert-to', 'pdf', '--outdir', os.getenv('TMPWORKSPACE'), f'{path}/{file}']
+        cmdline = ['libreoffice', '--headless', '--convert-to', 'pdf',
+                   '--outdir', os.getenv('TMPWORKSPACE'), f'{path}/{file}']
         print(f"Converting {file} in {path}:", cmdline)
         res = sp.run(cmdline,
                      shell=False, stderr=PIPE, timeout=180)
@@ -123,6 +145,8 @@ workspace_bucket = s3.Bucket(os.getenv('WORKSPACE'))
 obj = s3.Object(bucket, filename)
 
 ret = obj.get()
+
+csv_log = []
 
 file_stream = S3ObjectWithTell(ret['Body'])
 pronom_types = json.loads(open(f'pronomtypes.json').read())
@@ -154,33 +178,45 @@ for member in tfi:
         if not re.search(f'^{uuid}/content', member.name):
             continue
         handle = tf.extract(member, tmpdir)
-        s_output = siegfried(tmpdir, member.name)
+        siegfried_org_file = siegfried(tmpdir + '/' + member.name)
         # keys in the dict we get back:
         # filename,filesize,modified,errors,namespace,id,format,version,mime,basis,warning
         new_extension = ''
-        action = get_action(s_output['id'], s_output['format'])
+        action = get_action(
+            siegfried_org_file['id'], siegfried_org_file['format'])
         if (action == 'skip'):
             continue
         elif (action == 'libreoffice'):
             new_extension = convert_libreoffice(tmpdir, member.name)
+
         else:
-            print(f"File '{member.name} has unknown pronom type: {s_output['id']}")
+            print(
+                f"File '{member.name} has unknown pronom type: {siegfried_org_file['id']}")
             continue
 
+        # at this point we know that a conversion has taken place. The converted file is in /tmpdir/
         # Build new path
         orgwithoutext = (os.path.splitext(member.name))[0]
         basenamewithoutext = os.path.basename(orgwithoutext)
         # New path for object store
         objectname = orgwithoutext + new_extension
         # Where is the converted file:
-        converted_file = tmpdir + '/'+ basenamewithoutext + new_extension
+        converted_file = tmpdir + '/' + basenamewithoutext + new_extension
         print(f"Uploading {converted_file} ===> {objectname}")
         workspace_bucket.upload_file(converted_file, objectname)
+        # Now we log it.
 
+        # We need the new pronom code:
+        siegfried_new_file = siegfried(converted_file)
+
+        csv_log.append([
+            member.name, siegfried_org_file['id'],
+            objectname, siegfried_new_file['id']] )
 
    # except Exception as e:
    #    logging.error(f"Failed to extract and process {member.name}")
    #    logging.error(f'Error: {e}')
 
-
 print("========")
+print("Conversion done. Uploading CSV.")
+upload_csv(f'{uuid}.csv', csv_log, workspace_bucket, ['old_name', 'old_pronom', 'new_name', 'new_pronom'])
