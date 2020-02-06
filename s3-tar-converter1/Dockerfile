@@ -26,7 +26,7 @@ WORKDIR /opt/
 RUN apt-get -y --no-install-recommends install python3 python3-pip git python3-setuptools
 COPY requirements.txt /opt/
 RUN pip3 install --no-cache-dir -r requirements.txt
-RUN pip3 install -e 'git+https://github.com/arkivverket/mottak#egg=ar_s3_helper&subdirectory=lib/python/ar_s3_helper'
+RUN pip3 install -e 'git+https://github.com/arkivverket/mottak#egg=av_objectstore&subdirectory=lib/python/av_objectstore'
 
 # Siegfried, which requires Go
 
@@ -46,7 +46,6 @@ COPY s3-tar-converter1.py /opt/
 
 # TODO
 # test.exec_run('libreoffice --headless --cat "test"', user='libreoffice')
-
 
 # start up clamd and run the scanner - can be overriden when debugging.
 CMD ["/opt/start.sh"]

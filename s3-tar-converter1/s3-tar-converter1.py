@@ -4,7 +4,10 @@ import sys
 import logging
 
 import tarfile
-import ar_s3_helper as ar
+
+from av_objectstore import ArkivverketObjectStorage
+from av_objectstore import MakeIterIntoFile
+from av_objectstore import TarfileIterator
 
 import subprocess as sp     # execute siegfried
 # For compatibility with Python 3.6 (capture_output)
@@ -24,46 +27,6 @@ load_dotenv()
 
 global pronom_types       # dict resulting from parsing the pronom definitions
 global csv_log            # dict for logging convertions
-
-
-class S3ObjectWithTell:
-    """
-    Ads a tell method on the S3 object so we can give it the python tarfile lib.
-    """
-
-    def __init__(self, s3object):
-        self.s3object = s3object
-        self.offset = 0
-
-    def read(self, amount=None):
-        result = self.s3object.read(amount)
-        self.offset += len(result)
-        return result
-
-    def close(self):
-        self.s3object.close()
-
-    def tell(self):
-        return self.offset
-
-
-class TarfileIterator:
-    """
-    Creates an iteratable object from a tarfile.
-    """
-
-    def __init__(self, tarfileobject):
-        self.tarfileobject = tarfileobject
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        nextmember = self.tarfileobject.next()
-        if nextmember:
-            return nextmember
-        else:
-            raise StopIteration
 
 
 def process_sf_csv(output):
@@ -90,21 +53,20 @@ def get_action(id, format):
     return action
 
 
+def make_csv_row(row):
+    line = ','.join(map(lambda x: f'"{x}"',  row))
+    return line.encode('utf-8')
 
-def upload_csv(objectname, loglist, bucket, firstrow):
-    csvfile = tempfile.NamedTemporaryFile('w')
-    writer =  csv.writer(csvfile, dialect='excel')
-    writer.writerow(firstrow) # csv headers.
-    for row in loglist:
-        writer.writerow(row)
+
+def upload_csv(storage, objectname, loglist, bucket):
+    csvlines = iter(map(lambda x: make_csv_row(x), loglist))
     try:
-        bucket.upload_file(csvfile.name, objectname)
+        storage.upload_stream(
+            container=bucket, name=objectname, iterator=csvlines)
     except Exception as e:
         logging.error("Error while uploading CSV")
-        raise
-    finally:
-        # Close and delete the file.
-        csvfile.close()
+        raise "Error while uploading CSV"
+        
 
 
 # Converters
@@ -139,26 +101,26 @@ def convert_libreoffice(path, file):
 
 bucket = os.getenv('BUCKET')
 filename = os.getenv('OBJECT')
+workspace = os.getenv('WORKSPACE')
 
-s3 = ar.get_s3_resource()
-workspace_bucket = s3.Bucket(os.getenv('WORKSPACE'))
-obj = s3.Object(bucket, filename)
+storage = ArkivverketObjectStorage()
 
-ret = obj.get()
+tar_obj = storage.download_stream(bucket, filename)
 
-csv_log = []
+# Initialize the csv_log (LoL) with headers:
+csv_log = [['old_name', 'old_pronom', 'new_name', 'new_pronom']]
 
-file_stream = S3ObjectWithTell(ret['Body'])
+tar_file_stream = MakeIterIntoFile(tar_obj)
+# Load the pronomnoms.
 pronom_types = json.loads(open(f'pronomtypes.json').read())
 
-
-if file_stream is None:
+if tar_file_stream is None:
     logging.error("Could not open file.")
-    raise Exception('Could not get S3 object handle')
+    raise Exception('Could not get object handle')
 
 tfi = None
 try:
-    tf = tarfile.open(fileobj=file_stream, mode='r|')
+    tf = tarfile.open(fileobj=tar_file_stream, mode='r|')
     mytfi = TarfileIterator(tf)
     tfi = iter(mytfi)
 except Exception as e:
@@ -203,7 +165,7 @@ for member in tfi:
         # Where is the converted file:
         converted_file = tmpdir + '/' + basenamewithoutext + new_extension
         print(f"Uploading {converted_file} ===> {objectname}")
-        workspace_bucket.upload_file(converted_file, objectname)
+        storage.upload_file(workspace, objectname, converted_file, )
         # Now we log it.
 
         # We need the new pronom code:
@@ -211,7 +173,7 @@ for member in tfi:
 
         csv_log.append([
             member.name, siegfried_org_file['id'],
-            objectname, siegfried_new_file['id']] )
+            objectname, siegfried_new_file['id']])
 
    # except Exception as e:
    #    logging.error(f"Failed to extract and process {member.name}")
@@ -219,4 +181,6 @@ for member in tfi:
 
 print("========")
 print("Conversion done. Uploading CSV.")
-upload_csv(f'{uuid}.csv', csv_log, workspace_bucket, ['old_name', 'old_pronom', 'new_name', 'new_pronom'])
+
+upload_csv(storage=storage, objectname=f'{uuid}.csv', loglist=csv_log,
+           bucket=workspace)
