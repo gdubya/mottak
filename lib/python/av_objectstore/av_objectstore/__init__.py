@@ -89,3 +89,39 @@ class ArkivverketObjectStorage:
         return list(map(lambda x : x.name, container.list_objects()))
 
 
+class MakeIterIntoFile:
+    """
+    Turn an iterator into a file like object. Used to interface
+    with the tarfile lib when dealing with streamed data.
+    """
+    def __init__(self, it):
+        self.it = it
+        self.offset = 0
+        self.is_open = True
+    def growChunk( self ):
+        print("Growing the chonk")
+        self.next_chunk = self.next_chunk + self.it.__next__()
+
+    def read(self, amount=0):
+        print(f"Reading {amount} bytes from iterator")
+        if not self.is_open:
+            return None
+        self.next_chunk = b''
+        try:
+            while len(self.next_chunk) < amount:
+                self.growChunk()
+        except StopIteration:
+            self.offset += len(self.next_chunk)
+            print("End of iter - offset at:", self.offset)
+            return self.next_chunk
+        
+        self.offset += len(self.next_chunk)
+        print("Reading returning - offset at:", self.offset)
+        return self.next_chunk
+
+    def close(self):
+        self.is_open = False
+        return None
+
+    def tell(self):
+        return self.offset
