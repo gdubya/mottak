@@ -7,7 +7,7 @@ setup(name='ArkivverketObjectStorage',
       author='Per Buer',
       author_email='per.buer@gmail.com',
       license='MIT',
-      packages=['av-objectstore'],
+      packages=['av_objectstore'],
       install_requires=[
           'apache-libcloud'
       ],

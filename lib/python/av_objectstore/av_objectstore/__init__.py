@@ -80,9 +80,14 @@ class ArkivverketObjectStorage:
 
 
     def delete(self, container, name):
-        obj = self.driver.get_object(container_name=container,
-                                     object_name=name)
-        obj.delete()
+        ret = False
+        try:
+            obj = self.driver.get_object(container_name=container,
+                                         object_name=name)
+            ret = obj.delete
+        except libcloud.storage.types.ObjectDoesNotExistError:
+            ret = False
+        return ret
 
     def list_container(self, container):
         container = self._get_container(container)
