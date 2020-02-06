@@ -6,7 +6,7 @@ COPY requirements.txt /opt
 WORKDIR /opt
 RUN pip install --no-cache-dir -r requirements.txt
 # Install the helper module:
-RUN pip install -e 'git+https://github.com/arkivverket/mottak#egg=ar_s3_helper&subdirectory=lib/python/ar_s3_helper'
+RUN pip install -e 'git+https://github.com/arkivverket/mottak#egg=av_objectstore&subdirectory=lib/python/av_objectstore'
 
 
 # run the scanner - can be overriden when debugging.
