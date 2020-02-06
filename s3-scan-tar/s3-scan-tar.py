@@ -4,7 +4,8 @@ import sys
 import logging
 
 import tarfile
-import ar_s3_helper as ar
+from av_objectstore import ArkivverketObjectStorage
+from av_objectstore import MakeIterIntoFile
 
 import pyclamd
 
@@ -28,33 +29,17 @@ def get_clam():
         raise
     return csock
 
-class S3ObjectWithTell:
-    """
-    Ads a tell method on the S3 object so we can give it the python tarfile lib.
-    """
-    def __init__(self, s3object):
-        self.s3object = s3object
-        self.offset = 0
-
-    def read(self, amount=None):
-        result = self.s3object.read(amount)
-        self.offset += len(result)
-        return result
-
-    def close(self):
-        self.s3object.close()
-
-    def tell(self):
-        return self.offset
 
 class TarfileIterator:
     """
     Creates an iteratable object from a tarfile.
     """
     def __init__(self, tarfileobject):
+        print("Making tar iterator")
         self.tarfileobject = tarfileobject
 
     def __iter__(self):
+        print("Advancing iterator")
         return self
 
     def __next__(self):
@@ -68,16 +53,15 @@ class TarfileIterator:
 bucket = os.getenv('BUCKET')
 filename = os.getenv('OBJECT')
 
-s3 = ar.get_s3_resource()
-obj = s3.Object(bucket, filename)
+storage = ArkivverketObjectStorage()
 
-ret = obj.get()
+obj = storage.download_stream(bucket, filename)
 
-file_stream = S3ObjectWithTell(ret['Body'])
+file_stream = MakeIterIntoFile(obj)
 
 if file_stream is None:
     logging.error("Could not open file.")
-    raise Exception('Could not get S3 object handle')
+    raise Exception('Could not get object handle')
 
 tfi = None
 try:
