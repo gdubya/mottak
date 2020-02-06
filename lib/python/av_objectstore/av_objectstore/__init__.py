@@ -25,16 +25,30 @@ class ArkivverketObjectStorage:
      For S3 (not implmented yet)
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
-    
+
+    Attributes
+    ----------
+    driver : object
+        low level driver from libcloud.
+
+    Methods
+    -------
     The object returned has the following methods:
     
-     - contructor() - reads OBJECTSTORE and likely other vars and configures the object.
-     - download_file(container, name, file) (downloads a file, returns success or not)
-     - download_stream(container, name) (opens a stream to a file, returns a file-like object)
-     - upload_file(container, name, file) (uploads a local file to a container)
-     - upload_stream(container, name, fileobj) (uploads the contents of a file-like object to the cloud)
-     - delete(container, name) deletes the object from the object storge
-     - list_content(container) list the objects names in the given container
+    contructor()
+        reads OBJECTSTORE and likely other vars and configures the object.
+    download_file(container, name, file) 
+        downloads a file, returns success or not
+    download_stream(container, name) 
+        opens a stream to a file, returns a file-like object
+    upload_file(container, name, file) 
+        uploads a local file to a container
+    upload_stream(container, name, fileobj)
+        uploads the contents of a file-like object to the cloud
+    delete(container, name) 
+        deletes the object from the object storge.
+    list_content(container) 
+        list the objects names in the given container
     """
 
     def __init__(self):
@@ -57,16 +71,50 @@ class ArkivverketObjectStorage:
         return container
 
     def download_file(self, container, name, file):
+        """Download file to local filesystem from objectstore
+        
+        Parameters
+        ----------
+        container : str
+            name of the container
+        name : str
+            name of the object
+        file : str
+            target path of the file to be downloaded
+
+        """
         obj = self.driver.get_object(container_name=container,
                                      object_name=name)
         obj.download(file, overwrite_existing=True)
 
     def download_stream(self, container, name):
+        """Returns a stream (iterator) that delivers the object in chunks.
+
+        Parameters
+        ----------
+        container : str
+            name of the container
+        name : str
+            name of the object
+        """
         obj = self.driver.get_object(container_name=container,
                                      object_name=name)
         return obj.as_stream()
 
     def upload_file(self, container, name, file):
+        """Upload a local file to objectstore
+        
+        Parameters
+        ----------
+        container : str
+            name of the container
+        name : str
+            name of the object
+        file : str
+            target path of the file to be downloaded
+
+        """
+
         container = self._get_container(container)
         obj = self.driver.upload_object(file_path=file,
                                         container=container,
@@ -126,3 +174,23 @@ class MakeIterIntoFile:
 
     def tell(self):
         return self.offset
+
+
+class TarfileIterator:
+    """
+    Creates an iteratable object from a tarfile.
+    """
+
+    def __init__(self, tarfileobject):
+        self.tarfileobject = tarfileobject
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        nextmember = self.tarfileobject.next()
+        if nextmember:
+            return nextmember
+        else:
+            raise StopIteration
+
