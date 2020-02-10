@@ -5,7 +5,6 @@ import os
 
 import subprocess
 from av_objectstore import ArkivverketObjectStorage
-from av_objectstore import MakeIterIntoFile
 
 from dotenv import load_dotenv
 load_dotenv()
