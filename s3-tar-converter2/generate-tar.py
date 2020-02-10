@@ -4,29 +4,30 @@ import sys
 import logging
 
 import tarfile
-import ar_s3_helper as ar
 
 import io
-import csv
+import csv # parse the CVS from the objectstore.
 
+from av_objectstore import ArkivverketObjectStorage
+from av_objectstore import MakeIterIntoFile
+
+import tempfile
 from dotenv import load_dotenv
 load_dotenv()
 
 global csv_list
 
-"""
-get_csv - fetch the list of files from the CSV ($uuid.csv)
-and return it.
-"""
-def get_files(bucket, uuid):
-    mylist = []
-    csvobj = workspace_bucket.Object(key=f'{uuid}.csv')
-    # S3 returns byte. We need text so we wrap it in StringIO
-    csvbody = io.StringIO(csvobj.get()['Body'].read().decode('utf-8'))
-    csvreader = csv.reader(csvbody, dialect='excel')
-    # skip first row:
+def get_files(storage, bucket, uuid):
+    """
+    get_csv - fetch the list of files from the CSV ($uuid.csv)
+    and return it.
+    """
+    tmpfile = tempfile.NamedTemporaryFile(mode='w')
+    storage.download_file(container=bucket, name=f'{uuid}.csv', file=tmpfile.name)
+    tmphandle = open(tmpfile.name, mode='r')
+    csvreader = csv.reader(tmphandle)
     csvreader.__next__()
-    
+    mylist = []
     for row in csvreader:
         mylist.append(row[2])
     return mylist
@@ -37,28 +38,38 @@ def get_files(bucket, uuid):
 """
 class stdoutIO(io.BytesIO):
     def write(self, data):
+        # print(f'Writing {len(data)} to stdout', file=sys.stderr)
         sys.stdout.buffer.write(data)
         return
+
+    def close(self):
+        # print(f'Closing file....', file=sys.stderr)
+        pass
+    
+
         
 
-bucket = os.getenv('BUCKET')
-filename = os.getenv('OBJECT')
-uuid = os.getenv('UUID')
+filename         = os.getenv('OBJECT')
+uuid             = os.getenv('UUID')
+workspace_bucket = os.getenv('WORKSPACE')
 
-s3 = ar.get_s3_resource()
-workspace_bucket = s3.Bucket(os.getenv('WORKSPACE'))
+storage = ArkivverketObjectStorage()
 
-csv_list = get_files(workspace_bucket, uuid)
+
+csv_list = get_files(storage,  workspace_bucket, uuid)
+
 
 # fp = os.fdopen(sys.stdout.fileno(), 'wb')
 fp = stdoutIO()
 
 tf = tarfile.open(fileobj=fp, mode='w|')
 for file in csv_list:
-    print(file)
-    o = workspace_bucket.Object(key=file)
+    size = int(storage.get_size(workspace_bucket, file))
+    #print(file, size)
     tarinfo = tarfile.TarInfo(name=file)
-    tarinfo.size = o.get()['ContentLength']
-    tf.addfile(tarinfo=tarinfo, fileobj=o.get()['Body'])
+    stream = MakeIterIntoFile(storage.download_stream(workspace_bucket, file, chunk_size=8192))
+    #
+    tarinfo.size = size
+    tf.addfile(tarinfo=tarinfo, fileobj=stream)
 
 tf.close()
