@@ -115,7 +115,7 @@ spec:
 
   - name: avscan
     container: 
-      image: arkivverket/s3-scan
+      image: arkivverket/s3-tar-scan
       imagePullPolicy: Always
       env:
         - name: ENDPOINT
