@@ -3,16 +3,16 @@ from libcloud.storage.types import Provider
 from libcloud.storage.providers import get_driver
 
 import os
-
+import sys
 
 
 class ArkivverketObjectStorage:
     """
     ArkivverketObjectStorage - Simple object storage API for The National Archieves of Norway.
-    The goal is to abstract the details and provide a super-simple API towards various object 
+    The goal is to abstract the details and provide a super-simple API towards various object
     storage solutions.
 
-    Currently the API is implemented using Apache Libcloud and will only support a verified subset 
+    Currently the API is implemented using Apache Libcloud and will only support a verified subset
     of Libcloud.
 
     The API is not meant for use outside the National Archieves.
@@ -34,20 +34,20 @@ class ArkivverketObjectStorage:
     Methods
     -------
     The object returned has the following methods:
-    
+
     contructor()
         reads OBJECTSTORE and likely other vars and configures the object.
-    download_file(container, name, file) 
+    download_file(container, name, file)
         downloads a file, returns success or not
-    download_stream(container, name) 
+    download_stream(container, name)
         opens a stream to a file, returns a file-like object
-    upload_file(container, name, file) 
+    upload_file(container, name, file)
         uploads a local file to a container
     upload_stream(container, name, fileobj)
         uploads the contents of a file-like object to the cloud
-    delete(container, name) 
+    delete(container, name)
         deletes the object from the object storge.
-    list_content(container) 
+    list_content(container)
         list the objects names in the given container
     """
 
@@ -70,9 +70,26 @@ class ArkivverketObjectStorage:
         container = self.driver.get_container(container_name=container)
         return container
 
+    def get_size(self, container, name):
+        """Get the size of a file/object in the objectstore
+
+        Parameters
+        ----------
+        container : str
+            name of the container
+        name : str
+            name of the object
+
+        returns the size in bytes
+        """
+        obj = self.driver.get_object(
+            container_name=container, object_name=name)
+
+        return obj.size
+
     def download_file(self, container, name, file):
         """Download file to local filesystem from objectstore
-        
+
         Parameters
         ----------
         container : str
@@ -87,7 +104,7 @@ class ArkivverketObjectStorage:
                                      object_name=name)
         obj.download(file, overwrite_existing=True)
 
-    def download_stream(self, container, name):
+    def download_stream(self, container, name, chunk_size=8192):
         """Returns a stream (iterator) that delivers the object in chunks.
 
         Parameters
@@ -99,11 +116,14 @@ class ArkivverketObjectStorage:
         """
         obj = self.driver.get_object(container_name=container,
                                      object_name=name)
-        return obj.as_stream()
+        stream = self.driver.download_object_as_stream(
+            obj, chunk_size=chunk_size)
+        return stream
+        # return obj.as_stream(chunk_size=chunk_size)
 
     def upload_file(self, container, name, file):
         """Upload a local file to objectstore
-        
+
         Parameters
         ----------
         container : str
@@ -122,10 +142,9 @@ class ArkivverketObjectStorage:
         return obj
 
     def upload_stream(self, container, name, iterator):
+        print(f"Uploading stream {iterator} into {container} / {name}")
         container = self._get_container(container)
-        print("Uploading stream")
-        container.upload_object_via_stream(iterator=iterator, object_name=name)
-
+        return container.upload_object_via_stream(iterator=iterator, object_name=name)
 
     def delete(self, container, name):
         ret = False
@@ -139,41 +158,61 @@ class ArkivverketObjectStorage:
 
     def list_container(self, container):
         container = self._get_container(container)
-        return list(map(lambda x : x.name, container.list_objects()))
+        return list(map(lambda x: x.name, container.list_objects()))
 
 
 class MakeIterIntoFile:
     """
-    Turn an iterator into a file like object. Used to interface
+    Turn an iterator into a READ ONLY file like object. Used to interface
     with the tarfile lib when dealing with streamed data.
     """
-    def __init__(self, it):
-        self.it = it
+
+    def __init__(self, it, decode=False):
+        self.it = iter(it)  # should throw exception if not iter
         self.offset = 0
         self.is_open = True
-    def growChunk( self ):
+        self.decode = decode
+        self.eof = False
+        self.remainder = b''
+        self.next_chunk = b''
+
+    def _grow_chunk(self):
         self.next_chunk = self.next_chunk + self.it.__next__()
 
     def read(self, amount=0):
-        if not self.is_open:
-            return None
-        self.next_chunk = b''
-        try:
-            while len(self.next_chunk) < amount:
-                self.growChunk()
-        except StopIteration:
+        if (self.eof):  # At EOF,
+            return b''
+        if not self.is_open:  # Return a short read. Wrong?
+            return b''
+
+        while (len(self.next_chunk) < amount):
+            try:
+                self._grow_chunk()
+            except StopIteration: # Exhausted the file.
+                break
+
+        if (len(self.next_chunk) < amount):
+            self.eof = True
+
             self.offset += len(self.next_chunk)
             return self.next_chunk
         
-        self.offset += len(self.next_chunk)
-        return self.next_chunk
+        # We got more data then the caller asked for. Chop off some data so tarfile is happy.
+        ret = self.next_chunk[:amount]
+        self.next_chunk = self.next_chunk[amount:]
+        
+        self.offset += len(ret)
+        return ret
 
     def close(self):
         self.is_open = False
-        return None
+        self.next_chunk = None
+        self.remainder = None
+        return True
 
     def tell(self):
         return self.offset
+        
 
 
 class TarfileIterator:
@@ -193,4 +232,3 @@ class TarfileIterator:
             return nextmember
         else:
             raise StopIteration
-
