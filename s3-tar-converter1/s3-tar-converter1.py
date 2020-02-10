@@ -54,7 +54,7 @@ def get_action(id, format):
 
 
 def make_csv_row(row):
-    line = ','.join(map(lambda x: f'"{x}"',  row))
+    line = ','.join(map(lambda x: f'"{x}"',  row)) + '\n'
     return line.encode('utf-8')
 
 
