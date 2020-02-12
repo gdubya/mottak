@@ -9,6 +9,6 @@ setup(name='ArkivverketObjectStorage',
       license='MIT',
       packages=['av_objectstore'],
       install_requires=[
-          'apache-libcloud'
+#          'apache-libcloud'
       ],
       zip_safe=False)
