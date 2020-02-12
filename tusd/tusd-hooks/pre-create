@@ -131,10 +131,14 @@ def create_param_file(tmpfile, metadata, data):
            'ENDPOINT', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'BUCKET', 'AWS_REGION',  # for AWS
            'MAILGUN_DOMAIN',
            'MAILGUN_API_KEY', ]
+    logging.debug('Creating PARAM file for ARGO')
     with open(tmpfile, "w") as pfile:
         for key in env:
-            if (env[key]):
-                print(key+':', os.getenv(key), file=pfile)
+            val = os.getenv(key)
+            if not val:  # skip empty stuff
+                continue
+            logging.debug(f'Setting {key} to {val} in PARAM from ENV')
+            print(key+':', os.getenv(key), file=pfile)
         print('UUID:', metadata['uuid'], file=pfile)
         # Note: tusd gives the file a random name.
         print('OBJECT:', data['Upload']['Storage']['Key'], file=pfile)
@@ -176,6 +180,7 @@ if not (os.getenv('DBSTRING')):
 
 try:
     iid = data["Upload"]["MetaData"]["invitation_id"]
+    print(f"Invitation ID from JSON: {iid}")
 except:
     logging.error(f"Could not find invitation_id in JSON: {iid}")
     exit(UNKNOWNIID)
@@ -186,9 +191,11 @@ except:
 connection = my_connect(create_db_access(os.getenv('DBSTRING')))
 
 metadata = get_metadata(connection, iid)
-
+if (metadata == None):
+    logging.error(f"Failed to fetch metadata for invitation {iid} - no invitation?")
+    exit()
 # print(metadata)
-
+print(metadata)
 uuid = metadata['uuid']
 
 

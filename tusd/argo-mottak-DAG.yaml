@@ -12,6 +12,11 @@ kind: Workflow
 metadata:
   generateName: mottak-dag-
 spec:
+  volumes:
+    - name: gcs
+      secret:
+        secretName: gcs-cred
+
   entrypoint: mottak
   templates:
   - name: mottak
@@ -38,7 +43,7 @@ spec:
           dependencies: [task-avscan]
           # Don't run arkade5 if the checksum was all wrong.
           when: "'{{tasks.task-kontroll.outputs.parameters.checksum_result}}' == 'ok'"
-          # 
+          # Done: send mail....
         - name: task-nytt-arkiv
           template: nytt-arkiv
           dependencies: [task-arkade5]
@@ -55,19 +60,24 @@ spec:
     container: 
       image: arkivverket/s3-checksum256
       imagePullPolicy: Always
+      volumeMounts:
+        - name: gcs
+          mountPath: "/etc/gcs"
+          readOnly: true
       env:
         - name: OBJECTSTORE
           value: gcs
         - name: GOOGLE_ACCOUNT
           value: '{{workflow.parameters.GOOGLE_ACCOUNT}}'
         - name: AUTH_TOKEN
-        value: '{{workflow.parameters.AUTH_TOKEN}}'
+          value: '{{workflow.parameters.AUTH_TOKEN}}'
         - name: BUCKET
           value:  '{{workflow.parameters.BUCKET}}'
         - name: OBJECT
           value: '{{workflow.parameters.OBJECT}}'
         - name: CHECKSUM
           value: '{{workflow.parameters.CHECKSUM}}'
+
     outputs:
       parameters:
        - name: checksum_result
@@ -98,22 +108,30 @@ spec:
     container:
       image: arkivverket/s3-delete
       imagePullPolicy: Always
+      volumeMounts:
+        - name: gcs
+          mountPath: "/etc/gcs"
+          readOnly: true
       env:
         - name: OBJECTSTORE
           value: gcs
         - name: GOOGLE_ACCOUNT
           value: '{{workflow.parameters.GOOGLE_ACCOUNT}}'
         - name: AUTH_TOKEN
-        value: '{{workflow.parameters.AUTH_TOKEN}}'
+          value: '{{workflow.parameters.AUTH_TOKEN}}'
         - name: BUCKET
           value:  '{{workflow.parameters.BUCKET}}'
         - name: OBJECT
           value: '{{workflow.parameters.OBJECT}}'
-
+    
   - name: avscan
     container: 
       image: arkivverket/s3-tar-scan
       imagePullPolicy: Always
+      volumeMounts:
+        - name: gcs
+          mountPath: "/etc/gcs"
+          readOnly: true
       env:
         - name: OBJECTSTORE
           value: gcs
@@ -143,6 +161,10 @@ spec:
     container:
       image: arkivverket/arkade5
       imagePullPolicy: Always
+      volumeMounts:
+        - name: gcs
+          mountPath: "/etc/gcs"
+          readOnly: true
       env:
         - name: OBJECTSTORE
           value: gcs
@@ -178,7 +200,7 @@ spec:
         raw:
           data: |
             An archieve ({{workflow.parameters.OBJECT}}) of type {{workflow.parameters.ARCHIEVE_TYPE}} has been processed.
-            This archieve is stored in the bucket '{{workflow.parameters.BUCKET}}' at {{workflow.parameters.ENDPOINT}}.
+            This archieve is stored in the bucket '{{workflow.parameters.BUCKET}}'.
             Attached to this email is the report from Arkade5 and the log from the anti-virus scan.
             Please review.
     container:
