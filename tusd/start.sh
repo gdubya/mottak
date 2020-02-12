@@ -10,7 +10,7 @@ if [ -n "$BASE_PATH" ]; then
 fi
 
 # pick GCS:
-if [ "$OBJECTSTORE" == "gcs"]; then
+if [ "$OBJECTSTORE" == "gcs" ]; then
     export GCS_SERVICE_ACCOUNT_FILE=$AUTH_TOKEN
     TUSD_PARAMS="--hooks-dir /srv/tusd-hooks --behind-proxy --gcs-bucket $BUCKET"
 # handle Azure here if we're supporting it:
