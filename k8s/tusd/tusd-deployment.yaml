@@ -40,28 +40,6 @@ spec:
         env:
             # Override this if outside google:
             # If on AWS, this should be unset, methinks.
-          - name: ENDPOINT
-            value: OVERRIDE_IN_PATCH
-            # Override this?
-          - name: AWS_REGION
-            value: OVERRIDE_IN_PATCH
-            # Override this 
-          - name: BUCKET
-            value: OVERRIDE_IN_PATCH
-#      Comment out if using S3.
-          - name: GCS_SERVICE_ACCOUNT_FILE
-            value: /etc/gcs/gcs.json
-#         If using S3 you wanna uncomment these
-#          - name: AWS_ACCESS_KEY_ID
-#            valueFrom:
-#              secretKeyRef:
-#                name: s3-cred
-#                key: accessKeySecret
-#          - name: AWS_SECRET_ACCESS_KEY
-#            valueFrom:
-#              secretKeyRef:
-#                name: s3-cred
-#                key: secretKeySecret
           - name: DBSTRING
             valueFrom: 
               secretKeyRef:
