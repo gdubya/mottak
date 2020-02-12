@@ -8,13 +8,12 @@ OPT_PARAMS=""
 if [ -n "$BASE_PATH" ]; then
     OPT_PARAMS="$OPT_PARAMS --base-path $BASE_PATH"
 fi
-# Pick between GCS and S3
-if [ -n "$GCS_SERVICE_ACCOUNT_FILE" ]; then
-    echo "Assuming we're using the GCS native backend."
-    if [ ! -a $GCS_SERVICE_ACCOUNT_FILE ]; then
-        echo "Warning: $GCS_SERVICE_ACCOUNT_FILE doesn't seem to exists. Things will likely fail."
-    fi
+
+# pick GCS:
+if [ "$OBJECTSTORE" == "gcs"]; then
+    export GCS_SERVICE_ACCOUNT_FILE=$AUTH_TOKEN
     TUSD_PARAMS="--hooks-dir /srv/tusd-hooks --behind-proxy --gcs-bucket $BUCKET"
+# handle Azure here if we're supporting it:
 else
     echo "Assuming we're using the S3 backend"
     TUSD_PARAMS="--hooks-dir /srv/tusd-hooks --behind-proxy --s3-bucket $BUCKET --s3-endpoint $MY_ENDPOINT"

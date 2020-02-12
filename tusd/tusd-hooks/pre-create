@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from __future__ import print_function   # for eprint
 import os                               # for getenv
 import sys
 import json
@@ -11,6 +10,8 @@ import subprocess
 from subprocess import PIPE
 import random
 import re  # for parsing the DBSTRING
+
+import logging
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -34,10 +35,6 @@ UNKNOWNUUID = 15
 UNKNOWNIID = 16
 
 
-def eprint(*args, **kwargs):
-    """ Print to stderr """
-    print(*args, file=sys.stderr, **kwargs)
-
 # There needs to be a envir variable called DBSTRING
 # it is on the following format:
 
@@ -54,7 +51,7 @@ def create_db_access(dbstring):
     # Validate dbstring:
     for key in ['user', 'password', 'host', 'dbname']:
         if key not in d.keys():
-            eprint('%s not found in DBSTRING' % key)
+            logging.error('%s not found in DBSTRING' % key)
             exit(DBERROR)
     return d
 
@@ -68,7 +65,7 @@ def my_connect(conn_info):
                                       connect_timeout=10)
 
     except (Exception, psycopg2.Error) as error:
-        eprint("Error while connecting to PostgreSQL:", error)
+        logging.error(f"Error while connecting to PostgreSQL: {error}")
         exit(DBERROR)
     finally:
         return connection
@@ -82,11 +79,11 @@ def read_tusd_event(step):
     try:
         data = json.load(sys.stdin)
     except ValueError as e:
-        eprint(f"Error parsing JSON({step}): {e}")
+        logging.error(f"Error parsing JSON({step}): {e}")
         exit(JSONERROR)
-    # Enable this when debugging the events:
+    # Enable this when debugging the events. It dumps the input to /tmp so you can re-run the hook with stdin.
     with open(f'/tmp/json-event-{step}.json', 'w') as event_file:
-        json.dump(data, event_file)    
+        json.dump(data, event_file)
 
     return data
 
@@ -101,7 +98,7 @@ def get_metadata(conn, iid):
                             'AND invitations.id=%s', (iid,))
         rec = dict_cursor.fetchall()
     except psycopg2.Error as e:
-        eprint('SQL Query error:', e)
+        logging.error(f'SQL Query error: {e}')
         exit(DBERROR)
 
     if len(rec) == 0:
@@ -110,21 +107,34 @@ def get_metadata(conn, iid):
         return rec[0]
 
 
-def randomString(stringLength=10):
+def randomString(string_length=32):
     """Generate a random string of fixed length """
     letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for i in range(stringLength))
+    return ''.join(random.choice(letters) for i in range(string_length))
 
 
 def create_param_file(tmpfile, metadata, data):
-    """ Create a metadata JSON-file for Argo to ingest """
-    env = ['ENDPOINT', 'AWS_ACCESS_KEY_ID',
-           'AWS_SECRET_ACCESS_KEY', 'BUCKET', 'AWS_REGION', 
+    """ Create a metadata JSON-file for Argo to ingest.
+        This file contains the workflow parameters referenced in the workflow.
+    
+        Parameters:
+        -----------
+         tmpfile : str
+         metadata : dict
+         data : dict (data object given from tusd)
+     """
+    # define en workflow parameters
+    # If we expand support to other objectstore this needs to pick up the relevant env variables
+    # and inject them into the workflow.
+    env = ['OBJECTSTORE',     # type of objectstore: gcs, s3, azure etc.
+           'GOOGLE_ACCOUNT',  # for gooogle
+           'ENDPOINT', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'BUCKET', 'AWS_REGION',  # for AWS
            'MAILGUN_DOMAIN',
-           'MAILGUN_API_KEY']
+           'MAILGUN_API_KEY', ]
     with open(tmpfile, "w") as pfile:
         for key in env:
-            print(key+':', os.getenv(key), file=pfile)
+            if (env[key]):
+                print(key+':', os.getenv(key), file=pfile)
         print('UUID:', metadata['uuid'], file=pfile)
         # Note: tusd gives the file a random name.
         print('OBJECT:', data['Upload']['Storage']['Key'], file=pfile)
@@ -132,7 +142,6 @@ def create_param_file(tmpfile, metadata, data):
         print('ARCHIEVE_TYPE:', metadata['type'], file=pfile)
         print('NAME:', metadata['name'],  file=pfile)
         print('EMAIL:', metadata['email'], file=pfile)
-
 
 
 def argo_submit(paramfile):
@@ -144,11 +153,11 @@ def argo_submit(paramfile):
     # For Python 3.6 (tusd docker image has python3.6)
     submit = subprocess.run(argocmd, timeout=10, stdout=PIPE, stderr=PIPE)
     if not (submit.returncode == 0):
-        eprint("Argo submit failed")
+        logging.error("Argo submit failed")
         if submit.stderr:
-            eprint("Stderr: ", submit.stderr.decode('utf-8'))
+            logging.error(f"Stderr: {submit.stderr.decode('utf-8')}")
         if submit.stdout:
-            eprint("Stdout: ", submit.stdout.decode('utf-8'))
+            logging.error(f"Stdout: {submit.stdout.decode('utf-8')}")
         exit(ARGOERROR)
 
 
@@ -162,13 +171,13 @@ data = read_tusd_event(step=my_name)
 param_file = '/tmp/argo-input-' + randomString()
 
 if not (os.getenv('DBSTRING')):
-    eprint("DBSTRING environment variable not set")
+    logging.error("DBSTRING environment variable not set")
     exit(USAGEERROR)
 
 try:
     iid = data["Upload"]["MetaData"]["invitation_id"]
 except:
-    eprint("Could not find invitation_id in JSON:", iid)
+    logging.error(f"Could not find invitation_id in JSON: {iid}")
     exit(UNKNOWNIID)
 
 
@@ -186,7 +195,7 @@ uuid = metadata['uuid']
 # This is the pre-create hook. The only concern here is to validate the UUID
 if (my_name == 'pre-create'):
     if not (uuid == metadata['uuid']):
-        eprint('Unknown UUID')
+        logging.error('Unknown UUID')
         exit(UUIDERROR)
     else:
         exit(0)
@@ -199,10 +208,9 @@ try:
     filename = data['Upload']['Storage']['Key']
     print(f"Filename is {filename}")
 except:
-    eprint("Could not key/filename in JSON. Dumping JSON:")
-    eprint(json.dump(data))
+    logging.error("Could not key/filename in JSON. Dumping JSON:")
+    logging.error(json.dump(data))
     exit(JSONERROR)
-
 
 
 if ((metadata) and ('uuid' in metadata)):
