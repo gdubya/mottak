@@ -16,10 +16,8 @@ def get_clam():
     """Establish connection with Clamd
     :return: pyclamd socket object
     """
-    socket = os.getenv('CLAMD_SOCK')
+    socket = os.getenv('CLAMD_SOCK', default='/run/clamav/clamd.sock')
     csock = None
-    if not socket:
-        socket = '/var/run/clamav/clamd.sock'
     try:
         csock = pyclamd.ClamdUnixSocket(socket)
         csock.ping()
@@ -35,11 +33,11 @@ class TarfileIterator:
     Creates an iteratable object from a tarfile.
     """
     def __init__(self, tarfileobject):
-        print("Making tar iterator")
+        # print("Making tar iterator")
         self.tarfileobject = tarfileobject
 
     def __iter__(self):
-        print("Advancing iterator")
+        # print("Advancing iterator")
         return self
 
     def __next__(self):
@@ -52,7 +50,7 @@ class TarfileIterator:
 
 bucket = os.getenv('BUCKET')
 filename = os.getenv('OBJECT')
-
+avlogfile = os.getenv('AVLOG', default='/tmp/avlog')
 storage = ArkivverketObjectStorage()
 
 obj = storage.download_stream(bucket, filename)
@@ -83,25 +81,29 @@ except:
     logging.error(f'Error: {e}')
 virus = 0
 
-for member in tfi:
-    handle = tf.extractfile(member)
-    if handle == None:
-        # Handle is none - likely a directory.
-        continue
-    # print(handle.read())
-    try:
-        result = cd.scan_stream(handle)
-        if (result is None):
-            print(f'OK - {member.name}')
-        else:
-            print(f'Virus found! {result["stream"][1]} in {member.name}')
-            virus += 1
-    except:
-        logging.error(f"Failed to scan {member.name}")
-        logging.error(f'Error: {e}')
+with open(avlogfile,mode='w') as avlog:
+    for member in tfi:
+        handle = tf.extractfile(member)
+        if handle == None:
+            # Handle is none - likely a directory.
+            continue
+        # print(handle.read())
+        try:
+            result = cd.scan_stream(handle)
+            if (result is None):
+                print(f'OK - {member.name}', file=avlog)
+            else:
+                print(f'Virus found! {result["stream"][1]} in {member.name}', file=avlog)
+                virus += 1
+        except Exception as e:
+            logging.error(f"Failed to scan {member.name}")
+            logging.error(f'Error: {e}')
+            raise(e)
+    print("========", file=avlog)
+    print(f"{virus} viruses found", file=avlog)
+    print(f"Archive scanned. Log created as {avlogfile}")
 
 
-print("========")
-print(f"{virus} viruses found")
+
 
 

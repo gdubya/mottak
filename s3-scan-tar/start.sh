@@ -1,2 +1,5 @@
 #!/bin/sh
-/usr/sbin/clamd && /opt/s3-scan-tar.py
+echo Starting ClamAV
+/usr/sbin/clamd
+echo Initializing scan...
+/opt/s3-scan-tar.py
