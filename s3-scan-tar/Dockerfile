@@ -19,6 +19,6 @@ RUN pip install pyClamd python-dotenv
 # RUN addgroup -S molgroup && adduser -S mol -G molgroup
 # USER mol
 ENV PYTHONPATH "$PYTHONPATH:/usr/lib/python3.8/site-packages"
-COPY gcs.json /opt
+# COPY gcs.json /opt
 # start up clamd and run the scanner - can be overriden when debugging.
 CMD ["/opt/start.sh"]
