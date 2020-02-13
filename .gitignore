@@ -6,3 +6,4 @@ secrets
 cloud_sql_proxy
 k8s/patches.yaml
 *.pyc
+gcs.json
