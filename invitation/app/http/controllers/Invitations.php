@@ -236,7 +236,7 @@ class Invitations extends Controller
 	 */
 	public function receipt(int $id): string
 	{
-		$invitation = Invitation::get($id);
+		$invitation = Invitation::isNotNull('archive_type_id')->get($id);
 
 		if(!$invitation)
 		{
