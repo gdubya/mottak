@@ -217,12 +217,9 @@ class Invitations extends Controller
 		]);
 
 		$invitation->archive_type_id = $input['archive_type_id'];
-
-		$invitation->is_sensitive = $input['is_sensitive'] === '1' ? true : false;
-
-		$invitation->name = $input['name'];
-
-		$invitation->email = $input['email'];
+		$invitation->is_sensitive    = $input['is_sensitive'] == = '1' ? true : false;
+		$invitation->name            = $input['name'];
+		$invitation->email           = $input['email'];
 
 		$invitation->save();
 
@@ -237,7 +234,7 @@ class Invitations extends Controller
 	/**
 	 *
 	 */
-	public function receipt(string $id): string
+	public function receipt(int $id): string
 	{
 		$invitation = Invitation::get($id);
 
