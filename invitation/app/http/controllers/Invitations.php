@@ -217,7 +217,7 @@ class Invitations extends Controller
 		]);
 
 		$invitation->archive_type_id = $input['archive_type_id'];
-		$invitation->is_sensitive    = $input['is_sensitive'] == = '1' ? true : false;
+		$invitation->is_sensitive    = $input['is_sensitive'] === '1' ? true : false;
 		$invitation->name            = $input['name'];
 		$invitation->email           = $input['email'];
 
