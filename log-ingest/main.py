@@ -77,8 +77,6 @@ async def get_api_key(
             detail="Could not validate credentials"
         )
 
-
-
 def _get_db_conn():
     if not os.environ.get('TEST'):
         conn = psycopg2.connect(os.getenv('DSN'))
@@ -94,6 +92,8 @@ async def health_check():
     cur = dbc.cursor()
     try:
         cur.execute('SELECT 1')
+        ret = cur.fetchone()[0]
+        assert ret == 1 # we commit suicide if the database isn't sane.
     except Exception as e:
         raise HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR,
