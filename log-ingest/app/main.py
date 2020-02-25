@@ -6,7 +6,7 @@ from fastapi import Security, Depends, FastAPI, HTTPException
 from fastapi.security.api_key import APIKeyQuery, APIKeyCookie, APIKeyHeader, APIKey
 
 from starlette.status import HTTP_403_FORBIDDEN, HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
-from starlette.responses import RedirectResponse, JSONResponse
+from starlette.responses import RedirectResponse, JSONResponse, PlainTextResponse
 
 from typing import Optional
 from pydantic import BaseModel, ValidationError
@@ -20,9 +20,11 @@ import psycopg2
 import psycopg2.extras
 
 import base64
-
-from dotenv import load_dotenv
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception as e:
+    print(f'Failed to load dotenv. Assuming we are running in production')
 
 app = FastAPI()
 psycopg2.extras.register_uuid()
@@ -35,7 +37,7 @@ api_key_query = APIKeyQuery(name=API_KEY_NAME, auto_error=False)
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 api_key_cookie = APIKeyCookie(name=API_KEY_NAME, auto_error=False)
 
-app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI()
 
 
 # todo:
@@ -98,7 +100,7 @@ async def health_check():
         raise HTTPException(
             status_code=HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Database exception: {e}")
-    return(Response("Hunky dory"))
+    return(PlainTextResponse("Hunky dory"))
 
 
 @app.post("/ingest")

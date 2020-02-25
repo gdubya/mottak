@@ -180,8 +180,7 @@ def test_get_logs(mocker):
             assert 0
 
 
-# @pytest.mark.dependency()
-# @mock.patch('main.dbc')
+@pytest.mark.dependency()
 def test_heartbeat(mocker):
     mock = mocker.patch('main.dbc')  # replace dbc with a dummy.
     mock.cursor.return_value.fetchone.return_value = [1]
