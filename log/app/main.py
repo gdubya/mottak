@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
 from starlette.responses import Response
+from starlette.status import HTTP_403_FORBIDDEN, HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
+from starlette.responses import RedirectResponse, JSONResponse, PlainTextResponse
 
 from fastapi import Security, Depends, FastAPI, HTTPException
 from fastapi.security.api_key import APIKeyQuery, APIKeyCookie, APIKeyHeader, APIKey
-
-from starlette.status import HTTP_403_FORBIDDEN, HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR
-from starlette.responses import RedirectResponse, JSONResponse, PlainTextResponse
 
 from typing import Optional
 from pydantic import BaseModel, ValidationError
@@ -26,22 +25,13 @@ try:
 except Exception as e:
     print(f'Failed to load dotenv. Assuming we are running in production')
 
-app = FastAPI()
 psycopg2.extras.register_uuid()
 
-API_KEY = os.getenv('API_KEY')
-API_KEY_NAME = os.getenv('API_KEY_NAME', default='access_token')
-COOKIE_DOMAIN = os.getenv('COOKIE_DOMAIN', default="localtest.me")
+def get_application():
+    application = FastAPI(title='MOL logs')
+    return application
 
-api_key_query = APIKeyQuery(name=API_KEY_NAME, auto_error=False)
-api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
-api_key_cookie = APIKeyCookie(name=API_KEY_NAME, auto_error=False)
-
-app = FastAPI()
-
-
-# todo:
-# add error handling
+app = get_application()
 
 class ConditionEnum(str, Enum):
     ok = 'ok'
@@ -60,26 +50,26 @@ class LogMessage(BaseModel):
     attachment_name: Optional[str]
 
 
+api_key_query = APIKeyQuery(name=os.getenv('API_KEY_NAME', default='access_token'), auto_error=False)
+api_key_header = APIKeyHeader(name=os.getenv('API_KEY_NAME', default='access_token'), auto_error=False)
 
-async def get_api_key(
+def get_api_key(
     api_key_query: str = Security(api_key_query),
     api_key_header: str = Security(api_key_header),
-    api_key_cookie: str = Security(api_key_cookie),
 ):
-    # print(f"get_api_key:{api_key_query} : {api_key_header} : {api_key_cookie}")
+    API_KEY = os.getenv('API_KEY', 'fsdajawpeoijwej')
+
     if api_key_query == API_KEY:
         return api_key_query
     elif api_key_header == API_KEY:
         return api_key_header
-    elif api_key_cookie == API_KEY:
-        return api_key_cookie
     else:
         raise HTTPException(
             status_code=HTTP_403_FORBIDDEN,
             detail="Could not validate credentials"
         )
 
-def _get_db_conn():
+def get_db_conn():
     if not os.environ.get('TEST'):
         conn = psycopg2.connect(os.getenv('DSN'))
         conn.autocommit = True
@@ -87,10 +77,10 @@ def _get_db_conn():
     else:
         return None
 
-dbc = _get_db_conn()
+dbc = get_db_conn()
 
 @app.get("/healthz")
-async def health_check():
+def health_check():
     cur = dbc.cursor()
     try:
         cur.execute('SELECT 1')
@@ -156,12 +146,6 @@ def get_attachment(id: int, api_key: APIKey = Depends(get_api_key) ):
                     headers=headers,
                     media_type=mime)
 
-
-@app.get("/logout")
-async def route_logout_and_remove_cookie():
-    response = RedirectResponse(url="/")
-    response.delete_cookie(API_KEY_NAME, domain=COOKIE_DOMAIN)
-    return response
 
 
 @app.get("/secure")
