@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+
+readonly RESOURCE_GROUP_NAME=terraform
+readonly STORAGE_ACCOUNT_NAME=arkivverketmottak
+readonly CONTAINER_NAME=tfstate
+readonly LOCATION=westeurope
+readonly KEYVAULT_NAME=arkivverket
+
+errexit() {
+    printf "%b\n" "$@"
+    exit 1
+}
+
+is_installed() {
+    hash "$1" 2> /dev/null
+}
+
+check_deps() {
+    if ! is_installed jq; then
+        errexit "Please install the jq command and rerun"
+    fi
+
+    if ! is_installed az; then
+        errexit "Please install the az command and rerun"
+    fi
+}
+
+azure_login() {
+    if ! az login &> /dev/null; then
+        errexit "Unable to log in to Azure"
+    fi
+}
+
+create_keyvault() {
+    local keyvault_name="$1"
+    local resource_group_name="$2"
+    local location="$2"
+
+    if ! az keyvault show --name "$keyvault_name" &> /dev/null; then
+        az keyvault create                          \
+           --resource_group  "$resource_group_name" \
+           --location "$location"                   \
+           --name "$keyvault_name"
+    fi
+}
+
+create_resource_group() {
+    local resource_group_name="$1"
+    local location="$2"
+
+    if [[ $(az group exists --name "$resource_group_name" | tr -d '\n') == false ]]; then
+        if az group create --name $resource_group_name --location "$location" &> /dev/null; then
+            errexit "Could not create resource group $resource_group_name"
+        fi
+    else
+        echo "Reusing existing resource group"
+    fi
+}
+
+create_storage_account() {
+    local storage_account_name="$1"
+    local resource_group_name="$2"
+
+    account_json=$(az storage account check-name --name "$storage_account_name")
+    if [[ $? -eq 0  && $(echo "$account_json" | jq --raw-output .nameAvailable | tr -d '\n') == true ]]; then
+        if ! az storage account create                  \
+             --resource-group "$resource_group_name" \
+             --name "$storage_account_name"          \
+             --sku Standard_LRS                      \
+             --encryption-services blob &> /dev/null; then
+            errexit "Could not create $storage_account_name under resource group $resource_group_name"
+        fi
+    elif [[ $(echo "$account_json" | jq --raw-output .reason | tr -d '\n') == AlreadyExists ]]; then
+        echo "Reusing existing storage account"
+    else
+        errexit "$(echo "$account_json" | jq --raw-output .message)"
+    fi
+}
+
+get_storage_account_key() {
+    local storage_account_name="$1"
+    local resource_group_name="$2"
+
+    # prints the storage account key
+    az storage account keys list --resource-group $resource_group_name --account-name $storage_account_name --query [0].value -o tsv
+}
+
+create_blob_storage() {
+    local container_name="$1"
+    local storage_account_name="$2"
+    local storage_account_key="$3"
+
+    if ! az storage container create          \
+         --name $container_name               \
+         --account-name $storage_account_name \
+         --account-key $storage_account_key &> /dev/null; then
+        errexit "Could not create the container named $container_name under the account $storage_account_name"
+    fi
+}
+
+
+main() {
+    check_deps
+    azure_login
+
+    echo "Creating resource group $RESOURCE_GROUP_NAME in $LOCATION"
+    create_resource_group "$RESOURCE_GROUP_NAME" "$LOCATION"
+
+    # echo "Creating keyvault $KEYVAULT_NAME in $LOCATION"
+    # create_keyvault "$KEYVAULT_NAME" "$RESOURCE_GROUP_NAME" "$LOCATION"
+
+    echo "Creating storage account $STORAGE_ACCOUNT_NAME in the resource group $RESOURCE_GROUP_NAME"
+    create_storage_account "$STORAGE_ACCOUNT_NAME" "$RESOURCE_GROUP_NAME"
+    local storage_account_key=$(get_storage_account_key "$STORAGE_ACCOUNT_NAME" "$RESOURCE_GROUP_NAME")
+
+    echo "Creating blob storage for terraform state in $CONTAINER_NAME under $STORAGE_ACCOUNT_NAME"
+    create_blob_storage "$CONTAINER_NAME" "$STORAGE_ACCOUNT_NAME" "$storage_account_key"
+
+    echo Group: $RESOURCE_GROUP_NAME
+    echo Storage account: $STORAGE_ACCOUNT_NAME
+    echo Container: $CONTAINER_NAME
+    echo Location: $LOCATION
+    echo Key: $storage_account_key
+}
+
+main
