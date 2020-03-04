@@ -102,10 +102,10 @@ create_blob_storage() {
 
     echo "Creating blob storage for terraform state in $container_name under $storage_account_name"
 
-    if $(az storage container exists               \
-            --name "$container_name"               \
-            --account-name "$storage_account_name" \
-            2> /dev/null | jq .exists | tr -d '\n') != true; then
+    if [[ $(az storage container exists               \
+               --name "$container_name"               \
+               --account-name "$storage_account_name" \
+               2> /dev/null | jq .exists | tr -d '\n') != true ]]; then
         if ! az storage container create            \
              --name "$container_name"               \
              --account-name "$storage_account_name" \
