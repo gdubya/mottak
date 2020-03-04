@@ -8,7 +8,7 @@ readonly KEYVAULT_NAME=arkivverketmottak
 readonly SECRET_KEY=tfstate-storage-key
 
 OUTPUT=/dev/null
-
+SUBSCRIPTION_ID=''
 
 errexit() {
     printf "%b\n" "$@"
@@ -32,6 +32,13 @@ check_deps() {
 azure_login() {
     if ! az login &> $OUTPUT; then
         errexit "Unable to log in to Azure"
+    fi
+
+    if [[ -n $SUBSCRIPTION_ID ]]; then
+        echo "Using subscription $SUBSCRIPTION_ID"
+        if ! az account set --subscription="$SUBSCRIPTION_ID" &> $OUTPUT; then
+            errexit "Unable to set subscription to $SUBSCRIPTION_ID"
+        fi
     fi
 }
 
@@ -144,6 +151,10 @@ parse_options() {
         case "$1" in
             --verbose)
                 OUTPUT=/dev/tty
+                ;;
+            --subscription)
+                shift
+                SUBSCRIPTION_ID="$1"
                 ;;
             *)
                 break
