@@ -148,12 +148,6 @@ main() {
     local storage_account_key=$(get_storage_account_key "$STORAGE_ACCOUNT_NAME" "$RESOURCE_GROUP_NAME")
     create_blob_storage "$CONTAINER_NAME" "$STORAGE_ACCOUNT_NAME" "$storage_account_key"
 
-    # echo Group: $RESOURCE_GROUP_NAME
-    # echo Storage account: $STORAGE_ACCOUNT_NAME
-    # echo Container: $CONTAINER_NAME
-    # echo Location: $LOCATION
-    # echo Key: $storage_account_key
-
     store_secret_in_vault "$SECRET_KEY" "$storage_account_key" "$KEYVAULT_NAME"
 }
 
