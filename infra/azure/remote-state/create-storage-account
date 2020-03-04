@@ -100,11 +100,20 @@ create_blob_storage() {
     local storage_account_name="$2"
     local storage_account_key="$3"
 
-    if ! az storage container create          \
-         --name $container_name               \
-         --account-name $storage_account_name \
-         --account-key $storage_account_key &> /dev/null; then
-        errexit "Could not create the container named $container_name under the account $storage_account_name"
+    echo "Creating blob storage for terraform state in $container_name under $storage_account_name"
+
+    if $(az storage container exists               \
+            --name "$container_name"               \
+            --account-name "$storage_account_name" \
+            2> /dev/null | jq .exists | tr -d '\n') != true; then
+        if ! az storage container create            \
+             --name "$container_name"               \
+             --account-name "$storage_account_name" \
+             --account-key "$storage_account_key" &> /dev/null; then
+            errexit "Could not create the container named $container_name under the account $storage_account_name"
+        fi
+    else
+        echo "Reusing existing container"
     fi
 }
 
