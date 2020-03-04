@@ -5,6 +5,7 @@ readonly STORAGE_ACCOUNT_NAME=arkivverketmottak
 readonly CONTAINER_NAME=tfstate
 readonly LOCATION=westeurope
 readonly KEYVAULT_NAME=arkivverketmottak
+readonly SECRET_KEY=tfstate-storage-key
 
 errexit() {
     printf "%b\n" "$@"
@@ -34,15 +35,30 @@ azure_login() {
 create_keyvault() {
     local keyvault_name="$1"
     local resource_group_name="$2"
-    local location="$2"
+    local location="$3"
 
     echo "Creating keyvault $keyvault_name in $location"
 
     if ! az keyvault show --name "$keyvault_name" &> /dev/null; then
-        az keyvault create                          \
-           --resource_group  "$resource_group_name" \
-           --location "$location"                   \
-           --name "$keyvault_name"
+        if ! az keyvault create                      \
+             --resource-group "$resource_group_name" \
+             --location "$location"                  \
+             --name "$keyvault_name" &> /dev/null; then
+            errexit "Could not create keyvault $keyvault_name"
+        fi
+    else
+        echo "Reusing existing vault $keyvault_name"
+    fi
+}
+
+store_secret_in_vault() {
+    local key="$1"
+    local value="$2"
+    local keyvault_name="$3"
+
+    echo "Saving secret at key $key into vault $keyvault_name"
+    if ! az keyvault secret set --name "$key" --value "$value" --vault-name "$keyvault_name" &> /dev/null; then
+        errexit "Could not add the secret for key $key into $keyvault_name"
     fi
 }
 
@@ -53,7 +69,7 @@ create_resource_group() {
     echo "Creating resource group $resource_group_name in $location"
 
     if [[ $(az group exists --name "$resource_group_name" | tr -d '\n') == false ]]; then
-        if az group create --name $resource_group_name --location "$location" &> /dev/null; then
+        if az group create --name "$resource_group_name" --location "$location" &> /dev/null; then
             errexit "Could not create resource group $resource_group_name"
         fi
     else
@@ -67,19 +83,22 @@ create_storage_account() {
 
     echo "Creating storage account $storage_account_name in the resource group $resource_group_name"
 
-    account_json=$(az storage account check-name --name "$storage_account_name")
-    if [[ $? -eq 0  && $(echo "$account_json" | jq --raw-output .nameAvailable | tr -d '\n') == true ]]; then
-        if ! az storage account create               \
-             --resource-group "$resource_group_name" \
-             --name "$storage_account_name"          \
-             --sku Standard_LRS                      \
-             --encryption-services blob &> /dev/null; then
-            errexit "Could not create $storage_account_name under resource group $resource_group_name"
+    if account_json=$(az storage account check-name --name "$storage_account_name"); then
+        if [[ $(echo "$account_json" | jq --raw-output .nameAvailable | tr -d '\n') == true ]]; then
+            if ! az storage account create               \
+                 --resource-group "$resource_group_name" \
+                 --name "$storage_account_name"          \
+                 --sku Standard_LRS                      \
+                 --encryption-services blob &> /dev/null; then
+                errexit "Could not create $storage_account_name under resource group $resource_group_name"
+            fi
+        elif [[ $(echo "$account_json" | jq --raw-output .reason | tr -d '\n') == AlreadyExists ]]; then
+            echo "Reusing existing storage account"
+        else
+            errexit "$(echo "$account_json" | jq --raw-output .message)"
         fi
-    elif [[ $(echo "$account_json" | jq --raw-output .reason | tr -d '\n') == AlreadyExists ]]; then
-        echo "Reusing existing storage account"
     else
-        errexit "$(echo "$account_json" | jq --raw-output .message)"
+        errexit "Checking storage account $storage_account_name failed"
     fi
 }
 
@@ -122,18 +141,20 @@ main() {
     check_deps
     azure_login
 
-    # create_keyvault "$KEYVAULT_NAME" "$RESOURCE_GROUP_NAME" "$LOCATION"
+    create_keyvault "$KEYVAULT_NAME" "$RESOURCE_GROUP_NAME" "$LOCATION"
 
     create_resource_group "$RESOURCE_GROUP_NAME" "$LOCATION"
     create_storage_account "$STORAGE_ACCOUNT_NAME" "$RESOURCE_GROUP_NAME"
     local storage_account_key=$(get_storage_account_key "$STORAGE_ACCOUNT_NAME" "$RESOURCE_GROUP_NAME")
     create_blob_storage "$CONTAINER_NAME" "$STORAGE_ACCOUNT_NAME" "$storage_account_key"
 
-    echo Group: $RESOURCE_GROUP_NAME
-    echo Storage account: $STORAGE_ACCOUNT_NAME
-    echo Container: $CONTAINER_NAME
-    echo Location: $LOCATION
-    echo Key: $storage_account_key
+    # echo Group: $RESOURCE_GROUP_NAME
+    # echo Storage account: $STORAGE_ACCOUNT_NAME
+    # echo Container: $CONTAINER_NAME
+    # echo Location: $LOCATION
+    # echo Key: $storage_account_key
+
+    store_secret_in_vault "$SECRET_KEY" "$storage_account_key" "$KEYVAULT_NAME"
 }
 
 main
