@@ -36,6 +36,8 @@ create_keyvault() {
     local resource_group_name="$2"
     local location="$2"
 
+    echo "Creating keyvault $keyvault_name in $location"
+
     if ! az keyvault show --name "$keyvault_name" &> /dev/null; then
         az keyvault create                          \
            --resource_group  "$resource_group_name" \
@@ -47,6 +49,8 @@ create_keyvault() {
 create_resource_group() {
     local resource_group_name="$1"
     local location="$2"
+
+    echo "Creating resource group $resource_group_name in $location"
 
     if [[ $(az group exists --name "$resource_group_name" | tr -d '\n') == false ]]; then
         if az group create --name $resource_group_name --location "$location" &> /dev/null; then
@@ -61,9 +65,11 @@ create_storage_account() {
     local storage_account_name="$1"
     local resource_group_name="$2"
 
+    echo "Creating storage account $storage_account_name in the resource group $resource_group_name"
+
     account_json=$(az storage account check-name --name "$storage_account_name")
     if [[ $? -eq 0  && $(echo "$account_json" | jq --raw-output .nameAvailable | tr -d '\n') == true ]]; then
-        if ! az storage account create                  \
+        if ! az storage account create               \
              --resource-group "$resource_group_name" \
              --name "$storage_account_name"          \
              --sku Standard_LRS                      \
@@ -82,7 +88,11 @@ get_storage_account_key() {
     local resource_group_name="$2"
 
     # prints the storage account key
-    az storage account keys list --resource-group $resource_group_name --account-name $storage_account_name --query [0].value -o tsv
+    az storage account keys list               \
+       --resource-group "$resource_group_name" \
+       --account-name "$storage_account_name"  \
+       --query [0].value \
+       -o tsv
 }
 
 create_blob_storage() {
@@ -103,17 +113,11 @@ main() {
     check_deps
     azure_login
 
-    echo "Creating resource group $RESOURCE_GROUP_NAME in $LOCATION"
-    create_resource_group "$RESOURCE_GROUP_NAME" "$LOCATION"
-
-    # echo "Creating keyvault $KEYVAULT_NAME in $LOCATION"
     # create_keyvault "$KEYVAULT_NAME" "$RESOURCE_GROUP_NAME" "$LOCATION"
 
-    echo "Creating storage account $STORAGE_ACCOUNT_NAME in the resource group $RESOURCE_GROUP_NAME"
+    create_resource_group "$RESOURCE_GROUP_NAME" "$LOCATION"
     create_storage_account "$STORAGE_ACCOUNT_NAME" "$RESOURCE_GROUP_NAME"
     local storage_account_key=$(get_storage_account_key "$STORAGE_ACCOUNT_NAME" "$RESOURCE_GROUP_NAME")
-
-    echo "Creating blob storage for terraform state in $CONTAINER_NAME under $STORAGE_ACCOUNT_NAME"
     create_blob_storage "$CONTAINER_NAME" "$STORAGE_ACCOUNT_NAME" "$storage_account_key"
 
     echo Group: $RESOURCE_GROUP_NAME
