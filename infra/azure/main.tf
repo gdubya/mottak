@@ -3,11 +3,6 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "terraform-state" {
-  location = var.location
-  name = "terraform"
-}
-
 terraform {
   backend "azurerm" {
     storage_account_name = "arkivverketmottak" # the storage account is created in advance, outside of terraform
