@@ -37,8 +37,10 @@ check_deps() {
 }
 
 azure_login() {
-    if ! az login &> $OUTPUT; then
-        errexit "Unable to log in to Azure"
+    if ! az account show &> /dev/null; then
+        if ! az login &> $OUTPUT; then
+            errexit "Unable to log in to Azure"
+        fi
     fi
 
     if [[ -n $SUBSCRIPTION_ID ]]; then
