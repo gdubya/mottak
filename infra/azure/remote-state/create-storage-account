@@ -7,6 +7,9 @@ readonly LOCATION=westeurope
 readonly KEYVAULT_NAME=arkivverketmottak
 readonly SECRET_KEY=tfstate-storage-key
 
+OUTPUT=/dev/null
+
+
 errexit() {
     printf "%b\n" "$@"
     exit 1
@@ -27,7 +30,7 @@ check_deps() {
 }
 
 azure_login() {
-    if ! az login &> /dev/null; then
+    if ! az login &> $OUTPUT; then
         errexit "Unable to log in to Azure"
     fi
 }
@@ -43,7 +46,7 @@ create_keyvault() {
         if ! az keyvault create                      \
              --resource-group "$resource_group_name" \
              --location "$location"                  \
-             --name "$keyvault_name" &> /dev/null; then
+             --name "$keyvault_name" &> $OUTPUT; then
             errexit "Could not create keyvault $keyvault_name"
         fi
     else
@@ -57,7 +60,7 @@ store_secret_in_vault() {
     local keyvault_name="$3"
 
     echo "Saving secret at key $key into vault $keyvault_name"
-    if ! az keyvault secret set --name "$key" --value "$value" --vault-name "$keyvault_name" &> /dev/null; then
+    if ! az keyvault secret set --name "$key" --value "$value" --vault-name "$keyvault_name" &> $OUTPUT; then
         errexit "Could not add the secret for key $key into $keyvault_name"
     fi
 }
@@ -69,7 +72,7 @@ create_resource_group() {
     echo "Creating resource group $resource_group_name in $location"
 
     if [[ $(az group exists --name "$resource_group_name" | tr -d '\n') == false ]]; then
-        if az group create --name "$resource_group_name" --location "$location" &> /dev/null; then
+        if az group create --name "$resource_group_name" --location "$location" &> $OUTPUT; then
             errexit "Could not create resource group $resource_group_name"
         fi
     else
@@ -89,7 +92,7 @@ create_storage_account() {
                  --resource-group "$resource_group_name" \
                  --name "$storage_account_name"          \
                  --sku Standard_LRS                      \
-                 --encryption-services blob &> /dev/null; then
+                 --encryption-services blob &> $OUTPUT; then
                 errexit "Could not create $storage_account_name under resource group $resource_group_name"
             fi
         elif [[ $(echo "$account_json" | jq --raw-output .reason | tr -d '\n') == AlreadyExists ]]; then
@@ -128,7 +131,7 @@ create_blob_storage() {
         if ! az storage container create            \
              --name "$container_name"               \
              --account-name "$storage_account_name" \
-             --account-key "$storage_account_key" &> /dev/null; then
+             --account-key "$storage_account_key" &> $OUTPUT; then
             errexit "Could not create the container named $container_name under the account $storage_account_name"
         fi
     else
@@ -136,9 +139,24 @@ create_blob_storage() {
     fi
 }
 
+parse_options() {
+    while true; do
+        case "$1" in
+            --verbose)
+                OUTPUT=/dev/tty
+                ;;
+            *)
+                break
+        esac
+        shift
+    done
+}
+
 
 main() {
+    parse_options "$@"
     check_deps
+
     azure_login
     create_resource_group "$RESOURCE_GROUP_NAME" "$LOCATION"
 
@@ -151,4 +169,4 @@ main() {
     store_secret_in_vault "$SECRET_KEY" "$storage_account_key" "$KEYVAULT_NAME"
 }
 
-main
+main "$@"
