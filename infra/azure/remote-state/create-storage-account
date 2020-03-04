@@ -140,10 +140,10 @@ create_blob_storage() {
 main() {
     check_deps
     azure_login
+    create_resource_group "$RESOURCE_GROUP_NAME" "$LOCATION"
 
     create_keyvault "$KEYVAULT_NAME" "$RESOURCE_GROUP_NAME" "$LOCATION"
 
-    create_resource_group "$RESOURCE_GROUP_NAME" "$LOCATION"
     create_storage_account "$STORAGE_ACCOUNT_NAME" "$RESOURCE_GROUP_NAME"
     local storage_account_key=$(get_storage_account_key "$STORAGE_ACCOUNT_NAME" "$RESOURCE_GROUP_NAME")
     create_blob_storage "$CONTAINER_NAME" "$STORAGE_ACCOUNT_NAME" "$storage_account_key"
