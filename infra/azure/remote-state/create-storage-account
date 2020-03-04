@@ -4,7 +4,7 @@ readonly RESOURCE_GROUP_NAME=terraform
 readonly STORAGE_ACCOUNT_NAME=arkivverketmottak
 readonly CONTAINER_NAME=tfstate
 readonly LOCATION=westeurope
-readonly KEYVAULT_NAME=arkivverket
+readonly KEYVAULT_NAME=arkivverketmottak
 
 errexit() {
     printf "%b\n" "$@"
