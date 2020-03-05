@@ -1,17 +1,18 @@
-FROM python:3.8-alpine
-RUN apk add --no-cache git py3-cryptography py3-apache-libcloud py3-requests
+FROM python:3.8-slim-buster
 
+RUN apt-get update && apt-get install -y --no-install-recommends python3 git
 RUN mkdir -p /opt
-COPY s3-checksum256.py /opt
-WORKDIR /opt
+RUN pip install poetry
 # We don't need requirements.txt - we get native packages from debian.
 # Install the helper module:
-RUN pip install -e 'git+https://github.com/arkivverket/mottak#egg=av_objectstore&subdirectory=lib/python/av_objectstore'
-RUN pip install python-dotenv
-RUN addgroup -S molgroup && adduser -S mol -G molgroup
+RUN useradd --home-dir /opt mol
+WORKDIR /opt
+COPY s3-checksum256.py pyproject.toml /opt/
+RUN chown -R mol /opt
 USER mol
+RUN poetry install
+
 # alpine seems to be a bit stupid wrt PYTHONPATH handling.
-ENV PYTHONPATH "$PYTHONPATH:/usr/lib/python3.8/site-packages"
 # COPY gcs.json /opt
 # run the scanner - can be overriden when debugging.
-CMD ["/opt/s3-checksum256.py"]
+CMD ["/usr/local/bin/poetry", "run", "/opt/s3-checksum256.py"]

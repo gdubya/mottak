@@ -5,10 +5,13 @@ import os
 import sys
 import logging
 import hashlib
-from av_objectstore import ArkivverketObjectStorage
+from py_objectstore import ArkivverketObjectStorage
 
-from dotenv import load_dotenv
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except:
+    print("Failed to load dotenv file. Assuming production.")
 
 ENVERROR = 1
 FILEERROR = 2
