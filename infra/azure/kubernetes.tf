@@ -15,13 +15,13 @@ resource "azurerm_kubernetes_cluster" "mottak-cluster" {
   }
 
   agent_pool_profile {
-    name = "nodepool"
-    count = 2
-    min_count = 1
-    max_count = 8
+    name = var.node_pool_name
+    count = var.node_count
+    min_count = var.min_node_count
+    max_count = var.max_node_count
     type = "VirtualMachineScaleSets"
     enable_auto_scaling = true
-    vm_size = "Standard_D2_v2"
+    vm_size = var.node_type
   }
 }
 
