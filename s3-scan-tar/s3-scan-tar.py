@@ -4,19 +4,21 @@ import sys
 import logging
 
 import tarfile
-from av_objectstore import ArkivverketObjectStorage
-from av_objectstore import MakeIterIntoFile
+from py_objectstore import ArkivverketObjectStorage, MakeIterIntoFile, TarfileIterator
 
 import pyclamd
 
-from dotenv import load_dotenv
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except:
+    print("Failed to load dotenv file. Assuming production")
 
 def get_clam():
     """Establish connection with Clamd
     :return: pyclamd socket object
     """
-    socket = os.getenv('CLAMD_SOCK', default='/run/clamav/clamd.sock')
+    socket = os.getenv('CLAMD_SOCK', default='/var/run/clamav/clamd.ctl')
     csock = None
     try:
         csock = pyclamd.ClamdUnixSocket(socket)
@@ -26,27 +28,6 @@ def get_clam():
         logging.error(f'Error: {e}')
         raise
     return csock
-
-
-class TarfileIterator:
-    """
-    Creates an iteratable object from a tarfile.
-    """
-    def __init__(self, tarfileobject):
-        # print("Making tar iterator")
-        self.tarfileobject = tarfileobject
-
-    def __iter__(self):
-        # print("Advancing iterator")
-        return self
-
-    def __next__(self):
-        nextmember = self.tarfileobject.next()
-        if nextmember:
-            return nextmember
-        else:
-            raise StopIteration
-
 
 bucket = os.getenv('BUCKET')
 filename = os.getenv('OBJECT')
@@ -66,7 +47,7 @@ try:
     tf = tarfile.open(fileobj=file_stream, mode='r|')
     mytfi = TarfileIterator(tf)
     tfi = iter(mytfi)
-except:
+except Exception as e:
     logging.error(f'Failed to open stream to object: {bucket} / {filename}')
     logging.error(f'Error: {e}')
     raise
@@ -76,7 +57,7 @@ try:
     cd = get_clam()
     cver = cd.version()
     print(f'Intializing scan on {bucket}/{filename} using {cver}')
-except:
+except Exception as e:
     logging.error("Failed to connect to ClamAV")
     logging.error(f'Error: {e}')
 virus = 0

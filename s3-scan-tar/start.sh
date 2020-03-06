@@ -1,5 +1,8 @@
 #!/bin/sh
+set -e
+echo Refreshing ClamAV signatures
+freshclam
 echo Starting ClamAV
-/usr/sbin/clamd
+service clamav-daemon start
 echo Initializing scan...
-/opt/s3-scan-tar.py
+poetry run /opt/s3-scan-tar.py
