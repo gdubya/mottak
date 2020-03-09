@@ -41,7 +41,7 @@ choose_tfstorage_name() {
 
         echo "The name will be $storage_name"
         read -p "Is this OK? (y/n) "
-        if [[ $REPLY =~ y(es)? ]]; then
+        if [[ $REPLY =~ ^y(es)?$ ]]; then
             break
         fi
     done
