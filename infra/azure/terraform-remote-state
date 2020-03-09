@@ -2,11 +2,11 @@
 
 readonly PROGRAM_NAME=${BASH_SOURCE##*/}
 
-readonly RESOURCE_GROUP_NAME=terraform
-readonly STORAGE_ACCOUNT_NAME=arkivverketmottak
+readonly RESOURCE_GROUP_NAME=${RESOURCE_GROUP_NAME:-terraform}
+readonly STORAGE_ACCOUNT_NAME=${STORAGE_ACCOUNT_NAME:-arkivverketmottak}
 readonly CONTAINER_NAME=tfstate
-readonly LOCATION=westeurope
-readonly KEYVAULT_NAME=arkivverketmottak
+readonly LOCATION=${LOCATION:-westeurope}
+readonly KEYVAULT_NAME=${KEYVAULT_NAME:-arkivverketmottak}
 readonly SECRET_KEY=tfstate-storage-key
 
 # vars changed by options - these are the defaults
