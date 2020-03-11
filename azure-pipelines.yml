@@ -1,7 +1,12 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# Note that tasks have names defined here:
+#   https://github.com/Microsoft/vsts-tasks/tree/master/Tasks
+# So e.g. PublishTestResultsV2 becomes PublishTestResults@2
+#
+# The list of predefined build variables is found here:
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=vsts
+#
+# The variable names are slightly different when using steps written in bash: All uppercase and '_' instead of '.'
+# They can also be accessed as e.g. $(Agent.Id) from bash code in this file
 
 trigger:
   - master
@@ -10,7 +15,7 @@ pool:
   vmImage: "ubuntu-latest"
 
 variables:
-    DOCKER_BUILDKIT: 1  
+    DOCKER_BUILDKIT: 1
 
 steps:
   - task: Docker@2
@@ -34,7 +39,7 @@ steps:
       repository: mottak/invitation
       command: buildAndPush
       Dockerfile: invitation/Dockerfile
-  
+
   - task: Docker@2
     displayName: Build log service
     inputs:
