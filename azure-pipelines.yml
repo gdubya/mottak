@@ -4,16 +4,43 @@
 # https://aka.ms/yaml
 
 trigger:
-- master
+  - master
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: "ubuntu-latest"
+
+variables:
+    DOCKER_BUILDKIT: 1  
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+  - task: Docker@2
+    displayName: Login to ACR
+    inputs:
+      command: login
+      containerRegistry: arkivverket
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+  - task: Docker@2
+    displayName: Build Arkade
+    inputs:
+      containerRegistry: arkivverket
+      repository: kanin.azurecr.io/arkade5
+      command: buildAndPush
+      Dockerfile: arkade5/Dockerfile
+
+ - task: Docker@2
+    displayName: Build invitation
+    inputs:
+      containerRegistry: arkivverket
+      repository: kanin.azurecr.io/invitation
+      command: buildAndPush
+      Dockerfile: invitation/Dockerfile
+  
+ - task: Docker@2
+    displayName: Build log service
+    inputs:
+      containerRegistry: arkivverket
+      repository: kanin.azurecr.io/log
+      command: buildAndPush
+      Dockerfile: log/Dockerfile
+  
+  
