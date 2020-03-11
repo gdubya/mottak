@@ -14,7 +14,7 @@ RUN export GCSFUSE_REPO=gcsfuse-`lsb_release -c -s` && \
     apt-get update && apt-get install -y --no-install-recommends gcsfuse
 
 # While developing we use this.
-COPY gcs.json /etc/gcs/gcs.json
+# COPY gcs.json /etc/gcs/gcs.json
 COPY get-mets.py /opt
 COPY run.sh /opt
 CMD ["/opt/run.sh"]
