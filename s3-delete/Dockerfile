@@ -1,12 +1,9 @@
-FROM python:3.7-alpine
-RUN apk add --no-cache git
+FROM python:3.8-slim-buster
+RUN apt-get update && apt-get install -y --no-install-recommends python3 git && apt-get clean
 RUN mkdir -p /opt
-COPY s3-delete.py /opt
-COPY requirements.txt /opt
 WORKDIR /opt
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install -e 'git+https://github.com/arkivverket/mottak#egg=av_objectstore&subdirectory=lib/python/av_objectstore'
-
-
+COPY s3-delete.py pyproject.toml poetry.lock /opt/
+RUN pip install poetry
+RUN poetry install
 # run the scanner - can be overriden when debugging.
-CMD ["/opt/s3-delete.py"]
+CMD ["poetry", "run", "/opt/s3-delete.py"]
