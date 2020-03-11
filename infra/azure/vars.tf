@@ -1,6 +1,6 @@
 variable "location" {
   type = string
-  default = "westeurope"
+  default = "norwayeast"
 }
 
 variable node_type {
@@ -27,3 +27,8 @@ variable "min_node_count" {
   type = number
   default = 1
 }
+
+variable "cluster_name" {
+  type = string
+}
+

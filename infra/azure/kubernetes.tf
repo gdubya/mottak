@@ -1,17 +1,17 @@
-resource "azurerm_resource_group" "mottak-cluster" {
+resource "azurerm_resource_group" "resource-group" {
   location = var.location
-  name = "mottak-cluster"
+  name = "arkivverket"
 }
 
-resource "azurerm_kubernetes_cluster" "mottak-cluster" {
-  name = "mottak-cluster"
+resource "azurerm_kubernetes_cluster" "kubernetes-cluster" {
+  name = var.cluster_name
   location = var.location
-  resource_group_name = azurerm_resource_group.mottak-cluster.name
-  dns_prefix = "mottak"
+  resource_group_name = azurerm_resource_group.resource-group.name
+  dns_prefix = "arkivverket"
 
   service_principal {
-    client_id = azuread_service_principal.mottak-cluster.application_id
-    client_secret = random_password.mottak-cluster-pw.result
+    client_id = azuread_service_principal.cluster-principal.application_id
+    client_secret = random_password.cluster-pw.result
   }
 
   agent_pool_profile {
@@ -26,5 +26,5 @@ resource "azurerm_kubernetes_cluster" "mottak-cluster" {
 }
 
 output "kube_config" {
-   value = azurerm_kubernetes_cluster.mottak-cluster.kube_config_raw
+   value = azurerm_kubernetes_cluster.kubernetes-cluster.kube_config_raw
 }

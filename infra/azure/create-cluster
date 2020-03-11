@@ -2,11 +2,11 @@
 
 readonly PROGRAM_NAME=${BASH_SOURCE##*/}
 
-readonly RESOURCE_GROUP_NAME=${RESOURCE_GROUP_NAME:-terraform}
-readonly STORAGE_ACCOUNT_NAME=${STORAGE_ACCOUNT_NAME:-arkivverketmottak}
+readonly RESOURCE_GROUP_NAME=arkivverket
+readonly STORAGE_ACCOUNT_NAME=arkivverketstorage
 readonly CONTAINER_NAME=tfstate
-readonly LOCATION=${LOCATION:-westeurope}
-readonly KEYVAULT_NAME=${KEYVAULT_NAME:-arkivverketmottak}
+readonly LOCATION=${LOCATION:-norwayeast}
+readonly KEYVAULT_NAME=${KEYVAULT_NAME:-arkivverketvault}
 readonly SECRET_KEY=tfstate-storage-key
 
 # vars changed by options - these are the defaults
@@ -33,6 +33,10 @@ check_deps() {
 
     if ! is_installed az; then
         errexit "Please install the az command and rerun"
+    fi
+
+    if ! is_installed terraform; then
+        errexit "Please install the terraform command and rerun"
     fi
 }
 
@@ -160,7 +164,7 @@ show_help_and_quit() {
     prt "  --help\t\t\tShows this help"
     prt "  --subscription subscriptionid Use the given subscription id"
     prt "  --verbose\t\t\tShow the output of actions taken"
-    exit 0 
+    exit 0
 }
 
 parse_options() {
@@ -186,6 +190,7 @@ parse_options() {
 
 main() {
     parse_options "$@"
+    
     check_deps
 
     azure_login
@@ -198,6 +203,13 @@ main() {
     create_blob_storage "$CONTAINER_NAME" "$STORAGE_ACCOUNT_NAME" "$storage_account_key"
 
     store_secret_in_vault "$SECRET_KEY" "$storage_account_key" "$KEYVAULT_NAME"
+
+    
+    local cluster_name
+    read -p "Please enter cluster name: " cluster_name
+
+    terraform init
+    terraform apply -var "cluster_name=$cluster_name"
 }
 
 main "$@"

@@ -12,8 +12,9 @@ provider "random" {
 
 terraform {
   backend "azurerm" {
-    storage_account_name = "arkivverketmottak" # the storage account is created in advance, outside of terraform
-    resource_group_name = "terraform"
+    # Created elsewhere (outside of terraform)
+    storage_account_name = "arkivverketstorage"
+    resource_group_name = "arkivverket"
     container_name = "tfstate"
 
     key = "terraform.tfstate"
