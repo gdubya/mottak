@@ -42,5 +42,44 @@ steps:
       repository: mottak/log
       command: buildAndPush
       Dockerfile: log/Dockerfile
-  
-  
+
+  - task: Docker@2
+    displayName: Build mailer
+    inputs:
+      containerRegistry: arkivverket
+      repository: mottak/mailer
+      command: buildAndPush
+      Dockerfile: mailer/Dockerfile
+
+  - task: Docker@2
+    displayName: Build checksum service
+    inputs:
+      containerRegistry: arkivverket
+      repository: mottak/s3-checksum256
+      command: buildAndPush
+      Dockerfile: s3-checksum256/Dockerfile
+
+  - task: Docker@2
+    displayName: Build delete service
+    inputs:
+      containerRegistry: arkivverket
+      repository: mottak/s3-delete
+      command: buildAndPush
+      Dockerfile: s3-delete/Dockerfile
+
+  - task: Docker@2
+    displayName: Build AV scanner
+    inputs:
+      containerRegistry: arkivverket
+      repository: mottak/s3-scan-tar
+      command: buildAndPush
+      Dockerfile: s3-scan-tar/Dockerfile
+
+  - task: Docker@2
+    displayName: Build tusd container
+    inputs:
+      containerRegistry: arkivverket
+      repository: mottak/tusd
+      command: buildAndPush
+      Dockerfile: tusd/Dockerfile
+
