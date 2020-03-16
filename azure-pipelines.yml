@@ -26,7 +26,7 @@ stages:
   - stage: Build Stage
     displayName: Create and push all container images
     jobs:
-    - job: Build Arkade
+    - job: Build
       displayName: Build Arkade
       steps:
       - task: Docker@2
