@@ -98,7 +98,7 @@ stages:
     dependsOn: Build
     jobs:
       - deployment: Deploy
-        environment: $(clusterName).default
+        environment: $(clusterName)
         strategy:
           runOnce:
             deploy:
