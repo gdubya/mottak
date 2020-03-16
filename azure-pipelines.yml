@@ -23,7 +23,7 @@ variables:
   namespace: 'mottak'
 
 stages:
-  - stage: Build Stage
+  - stage: Build
     displayName: Create and push all container images
     jobs:
     - job: Build
