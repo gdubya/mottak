@@ -93,13 +93,13 @@ stages:
           command: buildAndPush
           Dockerfile: tusd/Dockerfile
 
-- stage: Deploy
-  displayName: Deploy Stage
-  dependsOn: Build
-  jobs:
-    - deployment: Deploy
-      strategy:
-        runOnce:
-          deploy:
-            steps:
-              - script: echo Deploy stage here
+  - stage: Deploy
+    displayName: Deploy Stage
+    dependsOn: Build
+    jobs:
+      - deployment: Deploy
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - script: echo Deploy stage here
