@@ -1,3 +1,4 @@
+---
 # Note that tasks have names defined here:
 #   https://github.com/Microsoft/vsts-tasks/tree/master/Tasks
 # So e.g. PublishTestResultsV2 becomes PublishTestResults@2
@@ -5,7 +6,8 @@
 # The list of predefined build variables is found here:
 # https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=vsts
 #
-# The variable names are slightly different when using steps written in bash: All uppercase and '_' instead of '.'
+# The variable names are slightly different when using steps written in bash:
+# All uppercase and '_' instead of '.'
 # They can also be accessed as e.g. $(Agent.Id) from bash code in this file
 
 trigger:
@@ -15,76 +17,89 @@ pool:
   vmImage: "ubuntu-latest"
 
 variables:
-    DOCKER_BUILDKIT: 1
+  DOCKER_BUILDKIT: 1
+  dockerRegistryServiceConnection: 'arkivverket'
+  clusterName: 'arkivverket-prod-mottak'
+  namespace: 'mottak'
 
-steps:
-  - task: Docker@2
-    displayName: Login to ACR
-    inputs:
-      command: login
-      containerRegistry: arkivverket
+stages:
+  - stage: Build Stage
+    displayName: Create and push all container images
+    jobs:
+    - job: Build Arkade
+      displayName: Build Arkade
+      steps:
+      - task: Docker@2
+        displayName: Build Arkade
+        inputs:
+          containerRegistry: arkivverket
+          repository: mottak/arkade5
+          command: buildAndPush
+          Dockerfile: arkade5/Dockerfile
 
-  - task: Docker@2
-    displayName: Build Arkade
-    inputs:
-      containerRegistry: arkivverket
-      repository: mottak/arkade5
-      command: buildAndPush
-      Dockerfile: arkade5/Dockerfile
+      - task: Docker@2
+        displayName: Build invitation
+        inputs:
+          containerRegistry: arkivverket
+          repository: mottak/invitation
+          command: buildAndPush
+          Dockerfile: invitation/Dockerfile
 
-  - task: Docker@2
-    displayName: Build invitation
-    inputs:
-      containerRegistry: arkivverket
-      repository: mottak/invitation
-      command: buildAndPush
-      Dockerfile: invitation/Dockerfile
+      - task: Docker@2
+        displayName: Build log service
+        inputs:
+          containerRegistry: arkivverket
+          repository: mottak/log
+          command: buildAndPush
+          Dockerfile: log/Dockerfile
 
-  - task: Docker@2
-    displayName: Build log service
-    inputs:
-      containerRegistry: arkivverket
-      repository: mottak/log
-      command: buildAndPush
-      Dockerfile: log/Dockerfile
+      - task: Docker@2
+        displayName: Build mailer
+        inputs:
+          containerRegistry: arkivverket
+          repository: mottak/mailer
+          command: buildAndPush
+          Dockerfile: mailer/Dockerfile
 
-  - task: Docker@2
-    displayName: Build mailer
-    inputs:
-      containerRegistry: arkivverket
-      repository: mottak/mailer
-      command: buildAndPush
-      Dockerfile: mailer/Dockerfile
+      - task: Docker@2
+        displayName: Build checksum service
+        inputs:
+          containerRegistry: arkivverket
+          repository: mottak/s3-checksum256
+          command: buildAndPush
+          Dockerfile: s3-checksum256/Dockerfile
 
-  - task: Docker@2
-    displayName: Build checksum service
-    inputs:
-      containerRegistry: arkivverket
-      repository: mottak/s3-checksum256
-      command: buildAndPush
-      Dockerfile: s3-checksum256/Dockerfile
+      - task: Docker@2
+        displayName: Build delete service
+        inputs:
+          containerRegistry: arkivverket
+          repository: mottak/s3-delete
+          command: buildAndPush
+          Dockerfile: s3-delete/Dockerfile
 
-  - task: Docker@2
-    displayName: Build delete service
-    inputs:
-      containerRegistry: arkivverket
-      repository: mottak/s3-delete
-      command: buildAndPush
-      Dockerfile: s3-delete/Dockerfile
+      - task: Docker@2
+        displayName: Build AV scanner
+        inputs:
+          containerRegistry: arkivverket
+          repository: mottak/s3-scan-tar
+          command: buildAndPush
+          Dockerfile: s3-scan-tar/Dockerfile
 
-  - task: Docker@2
-    displayName: Build AV scanner
-    inputs:
-      containerRegistry: arkivverket
-      repository: mottak/s3-scan-tar
-      command: buildAndPush
-      Dockerfile: s3-scan-tar/Dockerfile
+      - task: Docker@2
+        displayName: Build tusd container
+        inputs:
+          containerRegistry: arkivverket
+          repository: mottak/tusd
+          command: buildAndPush
+          Dockerfile: tusd/Dockerfile
 
-  - task: Docker@2
-    displayName: Build tusd container
-    inputs:
-      containerRegistry: arkivverket
-      repository: mottak/tusd
-      command: buildAndPush
-      Dockerfile: tusd/Dockerfile
-
+- stage: Deploy
+  displayName: Deploy Stage
+  dependsOn: Build
+  jobs:
+    - deployment: Deploy
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+              - script: echo Deploy stage here
