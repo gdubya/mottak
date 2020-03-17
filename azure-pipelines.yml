@@ -38,8 +38,8 @@ stages:
               containerRegistry: arkivverket
               repository: mottak/tusd
               Dockerfile: tusd/Dockerfile
-            tags: |
-              $(Build.SourceVersion)
+              tags: |
+                $(Build.SourceVersion)
 
           - task: PublishPipelineArtifact@1
             inputs:
@@ -56,8 +56,8 @@ stages:
               containerRegistry: arkivverket
               repository: mottak/invitation
               Dockerfile: invitation/Dockerfile
-            tags: |
-              $(Build.SourceVersion)
+              tags: |
+                $(Build.SourceVersion)
 
           - task: PublishPipelineArtifact@1
             inputs:
