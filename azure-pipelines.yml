@@ -148,7 +148,7 @@ stages:
     dependsOn: BuildContainers
     jobs:
       - deployment: DeployInvitation
-        environment: $(clusterName).$(namespace)
+        environment: $(clusterName)
         strategy:
           runOnce:
             deploy:
