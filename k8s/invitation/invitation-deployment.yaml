@@ -15,7 +15,7 @@ spec:
         run: invitation-app
     spec:
       containers:
-      - image: arkivverket/invitation
+      - image: arkivverket.azurecr.io/arkivverket/invitation
         name: invitation-container
         imagePullPolicy: Always
         ports:
@@ -40,7 +40,7 @@ spec:
                 name: invitation
                 key: applicationSecret
           - name: DBSTRING
-            valueFrom: 
+            valueFrom:
               secretKeyRef:
                 name: invitation-dsn
                 key: invitation-dsn

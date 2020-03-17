@@ -19,23 +19,32 @@ pool:
 variables:
   DOCKER_BUILDKIT: 1
   dockerRegistryServiceConnection: 'arkivverket'
-  clusterName: 'arkivverket-prod'
+  clusterName: 'arkivverket-prod-mottak'
   namespace: 'mottak'
+  imagePullSecret: 'arkivverket-pull-secret'
+  containerRegistry: 'arkivverket.azurecr.io'
 
 stages:
   - stage: BuildContainers
     displayName: Create and push all container images
     jobs:
-      - job: BuildArkade
-        displayName: Build and Publish Arkade
+      - job: BuildTusd
+        displayName: Build and Publish Tusd
         steps:
           - task: Docker@2
-            displayName: Build Arkade
+            displayName: Build tusd container
             inputs:
-              containerRegistry: arkivverket
-              repository: mottak/arkade5
               command: buildAndPush
-              Dockerfile: arkade5/Dockerfile
+              containerRegistry: arkivverket
+              repository: mottak/tusd
+              Dockerfile: tusd/Dockerfile
+            tags: |
+              $(Build.SourceVersion)
+
+          - task: PublishPipelineArtifact@1
+            inputs:
+              artifactName: 'tusd-artifacts'
+              targetPath: 'k8s/tusd'
 
       - job: BuildInvitation
         displayName: Build and Publish Invitation
@@ -43,10 +52,17 @@ stages:
           - task: Docker@2
             displayName: Build Invitation
             inputs:
+              command: buildAndPush
               containerRegistry: arkivverket
               repository: mottak/invitation
-              command: buildAndPush
               Dockerfile: invitation/Dockerfile
+            tags: |
+              $(Build.SourceVersion)
+
+          - task: PublishPipelineArtifact@1
+            inputs:
+              artifactName: 'invitation-artifacts'
+              targetPath: 'k8s/invitation'
 
       - job: BuildLogService
         displayName: Build and Publish Log Service
@@ -54,74 +70,122 @@ stages:
           - task: Docker@2
             displayName: Build Log Service
             inputs:
+              command: buildAndPush
               containerRegistry: arkivverket
               repository: mottak/log
-              command: buildAndPush
               Dockerfile: log/Dockerfile
+            tags: |
+              $(Build.SourceVersion)
 
-      - job: BuildMailer
-        displayName: Build and Publish Mailer
-        steps:
-          - task: Docker@2
-            displayName: Build Mailer
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/mailer
-              command: buildAndPush
-              Dockerfile: mailer/Dockerfile
+#      - job: BuildArkade
+#        displayName: Build and Publish Arkade
+#        steps:
+#          - task: Docker@2
+#            displayName: Build Arkade
+#            inputs:
+#              command: buildAndPush
+#              containerRegistry: arkivverket
+#              repository: mottak/arkade5
+#              Dockerfile: arkade5/Dockerfile
 
-      - job: BuildChecksumService
-        displayName: Build and Publish Checksum Service
-        steps:
-          - task: Docker@2
-            displayName: Build Checksum Service
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/s3-checksum256
-              command: buildAndPush
-              Dockerfile: s3-checksum256/Dockerfile
+#      - job: BuildMailer
+#        displayName: Build and Publish Mailer
+#        steps:
+#          - task: Docker@2
+#            displayName: Build Mailer
+#            inputs:
+#              command: buildAndPush
+#              containerRegistry: arkivverket
+#              repository: mottak/mailer
+#              Dockerfile: mailer/Dockerfile
+#            tags: |
+#              $(Build.SourceVersion)
 
-      - job: BuildDeleteService
-        displayName: Build and Publish Delete Service
-        steps:
-          - task: Docker@2
-            displayName: Build delete service
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/s3-delete
-              command: buildAndPush
-              Dockerfile: s3-delete/Dockerfile
 
-      - job: BuildAVScanner
-        displayName: Build and Publish AV Scanner
-        steps:
-          - task: Docker@2
-            displayName: Build AV scanner
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/s3-scan-tar
-              command: buildAndPush
-              Dockerfile: s3-scan-tar/Dockerfile
+#      - job: BuildChecksumService
+#        displayName: Build and Publish Checksum Service
+#        steps:
+#          - task: Docker@2
+#            displayName: Build Checksum Service
+#            inputs:
+#              command: buildAndPush
+#              containerRegistry: arkivverket
+#              repository: mottak/s3-checksum256
+#              Dockerfile: s3-checksum256/Dockerfile
+#            tags: |
+#              $(Build.SourceVersion)
 
-      - job: BuildTusd
-        displayName: Build and Publish Tusd
-        steps:
-          - task: Docker@2
-            displayName: Build tusd container
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/tusd
-              command: buildAndPush
-              Dockerfile: tusd/Dockerfile
+
+#      - job: BuildDeleteService
+#        displayName: Build and Publish Delete Service
+#        steps:
+#          - task: Docker@2
+#            displayName: Build delete service
+#            inputs:
+#              command: buildAndPush
+#              containerRegistry: arkivverket
+#              repository: mottak/s3-delete
+#              Dockerfile: s3-delete/Dockerfile
+#            tags: |
+#              $(Build.SourceVersion)
+
+#      - job: BuildAVScanner
+#        displayName: Build and Publish AV Scanner
+#        steps:
+#          - task: Docker@2
+#            displayName: Build AV scanner
+#            inputs:
+#              command: buildAndPush
+#              containerRegistry: arkivverket
+#              repository: mottak/s3-scan-tar
+#              Dockerfile: s3-scan-tar/Dockerfile
+#            tags: |
+#              $(Build.SourceVersion)
+
 
   - stage: Deploy
     displayName: Deploy Stage
     dependsOn: BuildContainers
     jobs:
-      - deployment: Deploy
-        environment: $(clusterName)
+      - deployment: DeployInvitation
+        environment: $(clusterName).$(namespace)
         strategy:
           runOnce:
             deploy:
               steps:
-                - script: echo Deploy stage here
+                - task: DownloadPipelineArtifact@2
+                  inputs:
+                    artifactName: 'invitation-artifacts'
+                    downloadPath: '$(System.ArtifactsDirectory)/invitation'
+
+                # This task is needed so that the deploy task can give the
+                # secrets to the cluster in the deploy task
+                - task: KubernetesManifest@0
+                  displayName: Create imagePullSecret
+                  inputs:
+                    action: createSecret
+                    secretName: $(imagePullSecret)
+                    namespace: $(namespace)
+                    dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
+                    kubernetesServiceConnection: $(clusterName)
+
+                - task: KubernetesManifest@0
+                  displayName: Deploy Tusd to Kubernetes cluster
+                  inputs:
+                    action: deploy
+                    namespace: $(namespace)
+                    manifests: |
+                      $(System.ArtifactsDirectory)/invitation/invitation-deployment.yaml
+                      $(System.ArtifactsDirectory)/invitation/invitation-service.yaml
+                    # imagePullSecrets will make the secrets needed to pull the
+                    # container image from the container image repository
+                    # available to the cluster
+                    imagePullSecrets: |
+                      $(imagePullSecret)
+                    # containers will find the container image in the yaml files
+                    # listed in manifests and add the tag.
+                    # In this case the tag is $(BuildId.SourceVersion) which
+                    # will be replaced with the SHA1 of the commit
+                    containers: |
+                      $(containerRegistry)/mottak/invitation:$(Build.SourceVersion)
+                    kubernetesServiceConnection: $(clusterName)
