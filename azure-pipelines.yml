@@ -74,8 +74,8 @@ stages:
               containerRegistry: arkivverket
               repository: mottak/log
               Dockerfile: log/Dockerfile
-            tags: |
-              $(Build.SourceVersion)
+              tags: |
+                $(Build.SourceVersion)
 
 #      - job: BuildArkade
 #        displayName: Build and Publish Arkade
