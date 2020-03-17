@@ -169,7 +169,7 @@ stages:
                     kubernetesServiceConnection: $(clusterName)
 
                 - task: KubernetesManifest@0
-                  displayName: Deploy Tusd to Kubernetes cluster
+                  displayName: Deploy Invitation to Kubernetes cluster
                   inputs:
                     action: deploy
                     namespace: $(namespace)
