@@ -116,7 +116,7 @@ stages:
 
   - stage: Deploy
     displayName: Deploy Stage
-    dependsOn: Build
+    dependsOn: BuildContainers
     jobs:
       - deployment: Deploy
         environment: $(clusterName)
