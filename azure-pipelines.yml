@@ -17,7 +17,7 @@ pool:
   vmImage: "ubuntu-latest"
 
 variables:
-  DOCKER_BUILDKIT: 1
+#  DOCKER_BUILDKIT: 1
   dockerRegistryServiceConnection: 'arkivverket'
   clusterName: 'arkivverket-prod-mottak'
   namespace: 'mottak'
