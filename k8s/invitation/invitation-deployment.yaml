@@ -15,7 +15,7 @@ spec:
         run: invitation-app
     spec:
       containers:
-      - image: arkivverket.azurecr.io/arkivverket/invitation
+      - image: arkivverket.azurecr.io/mottak/invitation
         name: invitation-container
         imagePullPolicy: Always
         ports:
