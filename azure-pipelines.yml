@@ -28,23 +28,23 @@ stages:
   - stage: BuildContainers
     displayName: Create and push all container images
     jobs:
-      - job: BuildTusd
-        displayName: Build and Publish Tusd
-        steps:
-          - task: Docker@2
-            displayName: Build tusd container
-            inputs:
-              command: buildAndPush
-              containerRegistry: arkivverket
-              repository: mottak/tusd
-              Dockerfile: tusd/Dockerfile
-              tags: |
-                $(Build.SourceVersion)
-
-          - task: PublishPipelineArtifact@1
-            inputs:
-              artifactName: 'tusd-artifacts'
-              targetPath: 'k8s/tusd'
+#      - job: BuildTusd
+#        displayName: Build and Publish Tusd
+#        steps:
+#          - task: Docker@2
+#            displayName: Build tusd container
+#            inputs:
+#              command: buildAndPush
+#              containerRegistry: arkivverket
+#              repository: mottak/tusd
+#              Dockerfile: tusd/Dockerfile
+#              tags: |
+#                $(Build.SourceVersion)
+#
+#          - task: PublishPipelineArtifact@1
+#            inputs:
+#              artifactName: 'tusd-artifacts'
+#              targetPath: 'k8s/tusd'
 
       - job: BuildInvitation
         displayName: Build and Publish Invitation
@@ -64,18 +64,18 @@ stages:
               artifactName: 'invitation-artifacts'
               targetPath: 'k8s/invitation'
 
-      - job: BuildLogService
-        displayName: Build and Publish Log Service
-        steps:
-          - task: Docker@2
-            displayName: Build Log Service
-            inputs:
-              command: buildAndPush
-              containerRegistry: arkivverket
-              repository: mottak/log
-              Dockerfile: log/Dockerfile
-              tags: |
-                $(Build.SourceVersion)
+#      - job: BuildLogService
+#        displayName: Build and Publish Log Service
+#        steps:
+#          - task: Docker@2
+#            displayName: Build Log Service
+#            inputs:
+#              command: buildAndPush
+#              containerRegistry: arkivverket
+#              repository: mottak/log
+#              Dockerfile: log/Dockerfile
+#              tags: |
+#                $(Build.SourceVersion)
 
 #      - job: BuildArkade
 #        displayName: Build and Publish Arkade
@@ -157,7 +157,6 @@ stages:
                   inputs:
                     artifactName: 'invitation-artifacts'
                     downloadPath: '$(System.ArtifactsDirectory)/invitation'
-
                 # This task is needed so that the deploy task can give the
                 # secrets to the cluster in the deploy task
                 - task: KubernetesManifest@0
