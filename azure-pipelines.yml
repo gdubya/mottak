@@ -103,7 +103,7 @@ stages:
               command: buildAndPush
               Dockerfile: s3-scan-tar/Dockerfile
 
-      - job: Build Tusd
+      - job: BuildTusd
         displayName: Build and Publish Tusd
         steps:
           - task: Docker@2
