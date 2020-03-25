@@ -1,13 +1,13 @@
 resource "azurerm_resource_group" "resource-group" {
   location = var.location
-  name = "arkivverket"
+  name = var.resource_group_name
 }
 
 resource "azurerm_kubernetes_cluster" "kubernetes-cluster" {
   name = var.cluster_name
   location = var.location
   resource_group_name = azurerm_resource_group.resource-group.name
-  dns_prefix = "arkivverket"
+  dns_prefix = var.dns_prefix
 
   service_principal {
     client_id = azuread_service_principal.cluster-principal.application_id
@@ -15,7 +15,7 @@ resource "azurerm_kubernetes_cluster" "kubernetes-cluster" {
   }
 
   agent_pool_profile {
-    name = var.node_pool_name
+    name = "${var.cluster_name}-nodepool"
     count = var.node_count
     min_count = var.min_node_count
     max_count = var.max_node_count
