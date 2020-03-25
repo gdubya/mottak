@@ -15,7 +15,7 @@ resource "azurerm_kubernetes_cluster" "kubernetes-cluster" {
   }
 
   agent_pool_profile {
-    name = "${var.cluster_name}-nodepool"
+    name = "nodepool"
     count = var.node_count
     min_count = var.min_node_count
     max_count = var.max_node_count

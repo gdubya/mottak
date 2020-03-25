@@ -14,7 +14,7 @@ terraform {
   backend "azurerm" {
     # Created elsewhere (outside of terraform)
     storage_account_name = "arkivverketstorage"
-    resource_group_name = var.resource_group_name
+    resource_group_name = "arkivverket"
     container_name = "tfstate"
 
     key = "terraform.tfstate"

@@ -3,6 +3,16 @@ variable "resource_group_name" {
   default = "arkivverket"
 }
 
+variable "storage_account_name" {
+  type = string
+  default = "arkivverketstorage"
+}
+
+variable "tfstate_container_name" {
+  type = string
+  default = "tfstate"
+}
+
 variable "location" {
   type = string
   default = "norwayeast"
@@ -31,6 +41,11 @@ variable "min_node_count" {
 variable "dns_prefix" {
   type = string
   default = "arkivverket"
+}
+
+variable "db_admin_name" {
+  type = string
+  default = "postgres"
 }
 
 variable "cluster_name" {
