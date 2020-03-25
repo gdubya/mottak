@@ -49,6 +49,9 @@ steps:
       repository: mottak/arkade5
       command: push
       Dockerfile: arkade5/Dockerfile
+      tags: |
+        latest
+        $(Build.SourceBranchName)
     condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
     
   - task: Docker@2
@@ -68,6 +71,9 @@ steps:
       repository: mottak/invitation
       command: push
       Dockerfile: invitation/Dockerfile
+      tags: |
+        latest
+        $(Build.SourceBranchName)
     condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
   - task: Docker@2
@@ -87,6 +93,9 @@ steps:
       repository: mottak/log
       command: push
       Dockerfile: log/Dockerfile
+      tags: |
+        latest
+        $(Build.SourceBranchName)
     condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
   - task: Docker@2
@@ -106,6 +115,9 @@ steps:
       repository: mottak/mailer
       command: push
       Dockerfile: mailer/Dockerfile
+      tags: |
+        latest
+        $(Build.SourceBranchName)
     condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
   - task: Docker@2
@@ -125,6 +137,9 @@ steps:
       repository: mottak/s3-checksum256
       command: push
       Dockerfile: s3-checksum256/Dockerfile
+      tags: |
+        latest
+        $(Build.SourceBranchName)
     condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
   - task: Docker@2
@@ -144,6 +159,9 @@ steps:
       repository: mottak/s3-delete
       command: push
       Dockerfile: s3-delete/Dockerfile
+      tags: |
+        latest
+        $(Build.SourceBranchName)
     condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
   - task: Docker@2
@@ -163,6 +181,9 @@ steps:
       repository: mottak/s3-scan-tar
       command: build
       Dockerfile: s3-scan-tar/Dockerfile
+      tags: |
+        latest
+        $(Build.SourceBranchName)
     condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
   - task: Docker@2
@@ -182,5 +203,8 @@ steps:
       repository: mottak/tusd
       command: build
       Dockerfile: tusd/Dockerfile
+      tags: |
+        latest
+        $(Build.SourceBranchName)
     condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
