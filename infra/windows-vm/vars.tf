@@ -19,3 +19,18 @@ variable "admin_username" {
 variable "admin_password" {
   type = string
 }
+
+variable "storage_account" {
+  type = string
+  default = "arkivverketwinshare"
+}
+
+variable "file_share_name" {
+  type = string
+  default = "winshare"
+}
+
+variable "file_share_quota" {
+  type = number
+  default = 5 # size in gigabytes
+}
