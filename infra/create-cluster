@@ -190,7 +190,7 @@ parse_options() {
 
 main() {
     parse_options "$@"
-    
+
     check_deps
 
     azure_login
@@ -199,14 +199,15 @@ main() {
     create_keyvault "$KEYVAULT_NAME" "$RESOURCE_GROUP_NAME" "$LOCATION"
 
     create_storage_account "$STORAGE_ACCOUNT_NAME" "$RESOURCE_GROUP_NAME"
-    local storage_account_key=$(get_storage_account_key "$STORAGE_ACCOUNT_NAME" "$RESOURCE_GROUP_NAME")
+    local storage_account_key
+    storage_account_key=$(get_storage_account_key "$STORAGE_ACCOUNT_NAME" "$RESOURCE_GROUP_NAME")
     create_blob_storage "$CONTAINER_NAME" "$STORAGE_ACCOUNT_NAME" "$storage_account_key"
 
     store_secret_in_vault "$SECRET_KEY" "$storage_account_key" "$KEYVAULT_NAME"
 
-    
+
     local cluster_name
-    read -p "Please enter cluster name: " cluster_name
+    read -rp "Please enter cluster name: " cluster_name
 
     terraform init
     terraform apply -var "cluster_name=$cluster_name"
