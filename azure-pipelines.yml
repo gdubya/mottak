@@ -9,7 +9,15 @@
 # They can also be accessed as e.g. $(Agent.Id) from bash code in this file
 
 trigger:
-  - master
+  branches:
+    include:
+    - '*'
+    - 'refs/tags/*'
+  paths:
+    exclude:
+    - README.md
+    - LICENSE
+    - .gitignore
 
 pool:
   vmImage: "ubuntu-latest"
@@ -50,7 +58,7 @@ steps:
       repository: mottak/invitation
       command: build
       Dockerfile: invitation/Dockerfile
-      tags:
+      tags: |
         latest
         $(Build.SourceBranchName)
   - task: Docker@2
@@ -69,7 +77,7 @@ steps:
       repository: mottak/log
       command: build
       Dockerfile: log/Dockerfile
-      tags:
+      tags: |
         latest
         $(Build.SourceBranchName)
   - task: Docker@2
@@ -88,7 +96,7 @@ steps:
       repository: mottak/mailer
       command: build
       Dockerfile: mailer/Dockerfile
-      tags:
+      tags: |
         latest
         $(Build.SourceBranchName)
   - task: Docker@2
@@ -107,7 +115,7 @@ steps:
       repository: mottak/s3-checksum256
       command: build
       Dockerfile: s3-checksum256/Dockerfile
-      tags:
+      tags: |
         latest
         $(Build.SourceBranchName)
   - task: Docker@2
@@ -126,7 +134,7 @@ steps:
       repository: mottak/s3-delete
       command: build
       Dockerfile: s3-delete/Dockerfile
-      tags:
+      tags: |
         latest
         $(Build.SourceBranchName)
   - task: Docker@2
@@ -145,7 +153,7 @@ steps:
       repository: mottak/s3-scan-tar
       command: build
       Dockerfile: s3-scan-tar/Dockerfile
-      tags:
+      tags: |
         latest
         $(Build.SourceBranchName)
   - task: Docker@2
@@ -164,7 +172,7 @@ steps:
       repository: mottak/tusd
       command: build
       Dockerfile: tusd/Dockerfile
-      tags:
+      tags: |
         latest
         $(Build.SourceBranchName)
   - task: Docker@2
