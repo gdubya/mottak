@@ -18,9 +18,9 @@ spec:
             secretName: gcs-cred
 
       containers:
-      - image: arkivverket.azurecr.io/mottak/tusd
+      - name: tusd-container
+        image: arkivverket.azurecr.io/mottak/tusd
         imagePullPolicy: Always
-        name: tusd-container
         ports:
         - containerPort: 1080
           protocol: TCP
@@ -33,10 +33,6 @@ spec:
           periodSeconds: 10
         # If using GCS as a backend we must use the native interface
         # because of compat issues tusd <--> gcs
-        volumeMounts:
-          - name: gcs
-            mountPath: "/etc/gcs"
-            readOnly: true
         env:
             # Override this if outside google:
             # If on AWS, this should be unset, methinks.
@@ -55,3 +51,23 @@ spec:
               secretKeyRef:
                 name: mailgun
                 key: emailDomain
+      - name: tusd-sidecar
+        image: minio/minio
+        # Requires Kubernetes 1.18
+        # lifecycle:
+        #   type: Sidecar
+        ports: 
+          - containerPort: 9000
+            protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        env:
+          - name: MINIO_ACCESS_KEY
+            value: bleh
+          - name: MINIO_SECRET_KEY
+            value: bleh bleh bleh
+  
