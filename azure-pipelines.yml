@@ -49,6 +49,7 @@ stages:
               tags: |
                 latest
                 $(Build.SourceBranchName)
+
           - task: Docker@2
             displayName: Push Arkade
             inputs:
@@ -74,6 +75,7 @@ stages:
               tags: |
                 latest
                 $(Build.SourceBranchName)
+
           - task: Docker@2
             displayName: Push invitation
             inputs:
@@ -99,6 +101,7 @@ stages:
               tags: |
                 latest
                 $(Build.SourceBranchName)
+
           - task: Docker@2
             displayName: Push log service
             inputs:
@@ -124,6 +127,7 @@ stages:
               tags: |
                 latest
                 $(Build.SourceBranchName)
+
           - task: Docker@2
             displayName: Push mailer
             inputs:
@@ -149,6 +153,7 @@ stages:
               tags: |
                 latest
                 $(Build.SourceBranchName)
+
           - task: Docker@2
             displayName: Push checksum service
             inputs:
@@ -174,6 +179,7 @@ stages:
               tags: |
                 latest
                 $(Build.SourceBranchName)
+
           - task: Docker@2
             displayName: Push delete service
             inputs:
@@ -199,6 +205,7 @@ stages:
               tags: |
                 latest
                 $(Build.SourceBranchName)
+
           - task: Docker@2
             displayName: Push AV scanner
             inputs:
@@ -224,6 +231,7 @@ stages:
               tags: |
                 latest
                 $(Build.SourceBranchName)
+
           - task: Docker@2
             displayName: Push tusd container
             inputs:
