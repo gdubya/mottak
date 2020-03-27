@@ -34,7 +34,7 @@ variables:
 
 stages:
   - stage: BuildContainers
-    displayName: Create and push all container images
+    displayName: Build all container images
     jobs:
       - job: BuildArkade
         displayName: Build Arkade
