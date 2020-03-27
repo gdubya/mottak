@@ -2,7 +2,7 @@
 # - move more things into secrets that are generally available
 # - improve readability if possible
 # - Figure out how we can prevents tasks with indirect dependencies to run.
-# - Perhaps make the arkade-report and the avlog into globalName artifacts so the can 
+# - Perhaps make the arkade-report and the avlog into globalName artifacts so the can
 # be mocked by other tasks as a way to work around failure tasks failing the flow.
 
 
@@ -57,22 +57,17 @@ spec:
 
 
   - name: sjekksum-kontroll
-    container: 
+    container:
       image: arkivverket/s3-checksum256
       imagePullPolicy: Always
       volumeMounts:
         - name: gcs
           mountPath: "/etc/gcs"
           readOnly: true
+      envFrom:
+        - configMapRef:
+            name: workflow-environment
       env:
-        - name: OBJECTSTORE
-          value: gcs
-        - name: GOOGLE_ACCOUNT
-          value: '{{workflow.parameters.GOOGLE_ACCOUNT}}'
-        - name: AUTH_TOKEN
-          value: '{{workflow.parameters.AUTH_TOKEN}}'
-        - name: BUCKET
-          value:  '{{workflow.parameters.BUCKET}}'
         - name: OBJECT
           value: '{{workflow.parameters.OBJECT}}'
         - name: CHECKSUM
@@ -83,18 +78,27 @@ spec:
        - name: checksum_result
          valueFrom:
           path: /tmp/result
-        
+
   # Kontainer som avviser et arkiv.
   # Her kan vi gjøre ting som å varsle arkivskaper om at jobben ikke avvist.
   - name: sjekksum-feil
     container:
       image: arkivverket/mailer
       imagePullPolicy: Always
+      envFrom:
+        - configMapRef:
+            name: workflow-environment
       env:
         - name: MAILGUN_DOMAIN
-          value: '{{workflow.parameters.MAILGUN_DOMAIN}}'
+          valueFrom:
+            secretKeyRef:
+              name: mailgun
+              key: emailDomain
         - name: MAILGUN_API_KEY
-          value: '{{workflow.parameters.MAILGUN_API_KEY}}'
+          valueFrom:
+            secretKeyRef:
+              name: mailgun
+              key: apiKey
         - name: NAME
           value: '{{workflow.parameters.NAME}}'
         - name: RECIPIENT
@@ -112,47 +116,33 @@ spec:
         - name: gcs
           mountPath: "/etc/gcs"
           readOnly: true
+      envFrom:
+        - configMapRef:
+            name: workflow-environment
       env:
-        - name: OBJECTSTORE
-          value: gcs
-        - name: GOOGLE_ACCOUNT
-          value: '{{workflow.parameters.GOOGLE_ACCOUNT}}'
-        - name: AUTH_TOKEN
-          value: '{{workflow.parameters.AUTH_TOKEN}}'
-        - name: BUCKET
-          value:  '{{workflow.parameters.BUCKET}}'
         - name: OBJECT
           value: '{{workflow.parameters.OBJECT}}'
-    
+
   - name: avscan
-    container: 
-      image: arkivverket/s3-tar-scan
+    container:
+      image: arkivverket/s3-scan-tar
       imagePullPolicy: Always
       volumeMounts:
         - name: gcs
           mountPath: "/etc/gcs"
           readOnly: true
+      envFrom:
+        - configMapRef:
+            name: workflow-environment
       env:
-        - name: OBJECTSTORE
-          value: gcs
-        - name: GOOGLE_ACCOUNT
-          value: '{{workflow.parameters.GOOGLE_ACCOUNT}}'
-        - name: AUTH_TOKEN
-          value: '{{workflow.parameters.AUTH_TOKEN}}'
-        - name: BUCKET
-          value:  '{{workflow.parameters.BUCKET}}'
-        - name: OBJECT
-          value: '{{workflow.parameters.OBJECT}}'
         - name: CHECKSUM
           value: '{{workflow.parameters.CHECKSUM}}'
+        - name: AVLOG
+          value: /tmp/avlog
     outputs:
-      parameters:
-       - name: av_verdict
-         valueFrom:
-           path: /tmp/result
       artifacts:
         - name: avlog
-          path: /tmp/av.log
+          path: /tmp/avlog
           archive:
             none: {}
 
@@ -165,15 +155,10 @@ spec:
         - name: gcs
           mountPath: "/etc/gcs"
           readOnly: true
+      envFrom:
+        - configMapRef:
+            name: workflow-environment
       env:
-        - name: OBJECTSTORE
-          value: gcs
-        - name: GOOGLE_ACCOUNT
-          value: '{{workflow.parameters.GOOGLE_ACCOUNT}}'
-        - name: AUTH_TOKEN
-          value: '{{workflow.parameters.AUTH_TOKEN}}'
-        - name: BUCKET
-          value:  '{{workflow.parameters.BUCKET}}'
         - name: OBJECT
           value: '{{workflow.parameters.OBJECT}}'
         - name: ARCHIEVE_TYPE
@@ -181,18 +166,20 @@ spec:
           # It needs the UUID because of the structure of the package. To know where to look for the mets file.
         - name: UUID
           value: '{{workflow.parameters.UUID}}'
+        - name: INVITATIONID
+          value: '{{workflow.parameters.INVITATIONID}}'
     outputs:
       artifacts:
         - name: arkade-report
           path: /tmp/arkade.html
           archive:
             none: {}
-    
+
   - name: nytt-arkiv
     inputs:
       artifacts:
       - name: arkade-report
-        path: /tmp/attachments/arkade-report.html     
+        path: /tmp/attachments/arkade-report.html
       - name: avlog
         path: /tmp/attachments/avlog.txt
       - name: message
@@ -200,17 +187,25 @@ spec:
         raw:
           data: |
             An archieve ({{workflow.parameters.OBJECT}}) of type {{workflow.parameters.ARCHIEVE_TYPE}} has been processed.
-            This archieve is stored in the bucket '{{workflow.parameters.BUCKET}}'.
             Attached to this email is the report from Arkade5 and the log from the anti-virus scan.
             Please review.
     container:
       image: arkivverket/mailer
       imagePullPolicy: Always
+      envFrom:
+        - configMapRef:
+            name: workflow-environment
       env:
         - name: MAILGUN_DOMAIN
-          value: '{{workflow.parameters.MAILGUN_DOMAIN}}'
+          valueFrom:
+            secretKeyRef:
+              name: mailgun
+              key: emailDomain
         - name: MAILGUN_API_KEY
-          value: '{{workflow.parameters.MAILGUN_API_KEY}}'
+          valueFrom:
+            secretKeyRef:
+              name: mailgun
+              key: apiKey
         - name: NAME
           value: '{{workflow.parameters.NAME}}'
         - name: RECIPIENT

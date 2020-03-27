@@ -3,11 +3,11 @@
 readonly PROGRAM_NAME=${BASH_SOURCE##*/}
 
 readonly RESOURCE_GROUP_NAME=arkivverket
-readonly STORAGE_ACCOUNT_NAME=arkivverketstorage
+readonly STORAGE_ACCOUNT_NAME=arkivverketwin
 readonly CONTAINER_NAME=tfstate
 readonly LOCATION=${LOCATION:-norwayeast}
 readonly KEYVAULT_NAME=${KEYVAULT_NAME:-arkivverketvault}
-readonly SECRET_KEY=tfstate-storage-key
+readonly SECRET_KEY=tfstate-windows-storage-key
 
 # vars changed by options - these are the defaults
 OUTPUT=/dev/null
@@ -206,11 +206,19 @@ main() {
     store_secret_in_vault "$SECRET_KEY" "$storage_account_key" "$KEYVAULT_NAME"
 
 
-    local cluster_name
-    read -rp "Please enter cluster name: " cluster_name
+    local vm_name
+    read -rp "Please enter the name of the virual machine: " vm_name
+
+    local admin_username
+    read -rp "Please enter the admin username: " admin_username
+
+    local admin_password
+    read -rsp "Please enter the admin password: " admin_password
 
     terraform init
-    terraform apply -var "cluster_name=$cluster_name"
+    terraform apply -var "vm_name=$vm_name"                \
+                    -var "admin_username=$admin_username"  \
+                    -var "admin_password=$admin_password"
 }
 
 main "$@"

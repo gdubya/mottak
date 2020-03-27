@@ -5,16 +5,16 @@ metadata:
 data:
   config: |
     artifactRepository:
-      archiveLogs: true
+      archiveLogs: false
       s3:
         # Override this:
-        bucket:    mottak
-        keyPrefix: log
+        bucket:    artifacts
         # Override this too - if deployed outside Google
-        endpoint: https://storage.googleapis.com
+        endpoint: http://minio-service.argo.svc.cluster.local:9000
+        insecure: true
         accessKeySecret:
-          name: s3-cred
+          name: minio-cred
           key: accessKeySecret
         secretKeySecret:
-          name: s3-cred
+          name: minio-cred
           key: secretKeySecret

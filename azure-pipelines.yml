@@ -32,6 +32,7 @@ variables:
   imagePullSecret: 'arkivverket-pull-secret'
   containerRegistry: 'arkivverket.azurecr.io'
 
+
 stages:
   - stage: BuildContainers
     displayName: Build all container images

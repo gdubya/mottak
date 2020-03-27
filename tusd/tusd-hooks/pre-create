@@ -124,38 +124,25 @@ def create_param_file(tmpfile, metadata, data):
          data : dict (data object given from tusd)
      """
     # define en workflow parameters
-    # If we expand support to other objectstore this needs to pick up the relevant env variables
-    # and inject them into the workflow.
-    env = ['OBJECTSTORE',     # type of objectstore: gcs, s3, azure etc.
-           'GOOGLE_ACCOUNT',  # for gooogle
-           'ENDPOINT', 'AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'BUCKET', 'AWS_REGION',  # for AWS
-           'MAILGUN_DOMAIN',
-           'MAILGUN_API_KEY', ]
     logging.debug('Creating PARAM file for ARGO')
     with open(tmpfile, "w") as pfile:
-        for key in env:
-            val = os.getenv(key)
-            if not val:  # skip empty stuff
-                continue
-            logging.debug(f'Setting {key} to {val} in PARAM from ENV')
-            print(key+':', os.getenv(key), file=pfile)
         print('UUID:', metadata['uuid'], file=pfile)
-        # Note: tusd gives the file a random name.
         print('OBJECT:', data['Upload']['Storage']['Key'], file=pfile)
         print('CHECKSUM:', metadata['checksum'], file=pfile)
         print('ARCHIEVE_TYPE:', metadata['type'], file=pfile)
         print('NAME:', metadata['name'],  file=pfile)
         print('EMAIL:', metadata['email'], file=pfile)
+        print('INVITATIONID:', metadata['id'], file=pfile)
 
 
 def argo_submit(paramfile):
     """ Submit a job to argo. Takes a YAML file as parameter """
     argocmd = ["argo", "submit", "--parameter-file", paramfile, WORKFLOW]
-    print("Argo cmd line:", argocmd)
+    logging.info(f"Argo cmd line: {argocmd}")
     # Python 3.7
     #submit = subprocess.run(argocmd, timeout=10, capture_output=True)
     # For Python 3.6 (tusd docker image has python3.6)
-    submit = subprocess.run(argocmd, timeout=10, stdout=PIPE, stderr=PIPE)
+    submit = subprocess.run(argocmd, timeout=20, stdout=PIPE, stderr=PIPE)
     if not (submit.returncode == 0):
         logging.error("Argo submit failed")
         if submit.stderr:
@@ -174,19 +161,20 @@ my_name = os.path.basename(__file__)
 data = read_tusd_event(step=my_name)
 param_file = '/tmp/argo-input-' + randomString()
 
+if (os.getenv('DEBUG')):
+    logging.basicConfig(level='DEBUG')
+
 if not (os.getenv('DBSTRING')):
     logging.error("DBSTRING environment variable not set")
     exit(USAGEERROR)
 
 try:
     iid = data["Upload"]["MetaData"]["invitation_id"]
-    print(f"Invitation ID from JSON: {iid}")
+    logging.info(f"Invitation ID from JSON: {iid}")
 except:
     logging.error(f"Could not find invitation_id in JSON: {iid}")
     exit(UNKNOWNIID)
 
-
-# print(f"Getting metadata for IID {iid}")
 
 connection = my_connect(create_db_access(os.getenv('DBSTRING')))
 
@@ -194,8 +182,7 @@ metadata = get_metadata(connection, iid)
 if (metadata == None):
     logging.error(f"Failed to fetch metadata for invitation {iid} - no invitation?")
     exit()
-# print(metadata)
-print(metadata)
+
 uuid = metadata['uuid']
 
 
@@ -213,7 +200,7 @@ if (my_name == 'pre-create'):
 # Verify that we have a filename:
 try:
     filename = data['Upload']['Storage']['Key']
-    print(f"Filename is {filename}")
+    logging.debug(f"File name (in objectstore) is {filename}")
 except:
     logging.error("Could not key/filename in JSON. Dumping JSON:")
     logging.error(json.dump(data))
@@ -228,7 +215,7 @@ if ((metadata) and ('uuid' in metadata)):
 
     exit(0)
 else:
-    print("Unknown UUID:" + uuid)
+    logging.error("Unknown UUID:" + uuid)
     exit(UUIDERROR)
 
 
