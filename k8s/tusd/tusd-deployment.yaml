@@ -18,7 +18,7 @@ spec:
             secretName: gcs-cred
 
       containers:
-      - image: arkivverket/tusd
+      - image: arkivverket.azurecr.io/mottak/tusd
         imagePullPolicy: Always
         name: tusd-container
         ports:
@@ -41,7 +41,7 @@ spec:
             # Override this if outside google:
             # If on AWS, this should be unset, methinks.
           - name: DBSTRING
-            valueFrom: 
+            valueFrom:
               secretKeyRef:
                 name: invitation-dsn
                 key: invitation-dsn
