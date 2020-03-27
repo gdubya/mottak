@@ -92,6 +92,7 @@ stages:
             inputs:
               artifactName: 'invitation-artifacts'
               targetPath: 'k8s/invitation'
+            condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
       - job: BuildLogService
         displayName: Build Log Service
@@ -252,6 +253,7 @@ stages:
   - stage: Deploy
     displayName: Deploy Stage
     dependsOn: BuildContainers
+    condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
     jobs:
       - deployment: DeployInvitation
         environment: $(clusterName)
