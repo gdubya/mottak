@@ -88,6 +88,11 @@ stages:
                 $(Build.SourceBranchName)
             condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
+          - task: PublishPipelineArtifact@1
+            inputs:
+              artifactName: 'invitation-artifacts'
+              targetPath: 'k8s/invitation'
+
       - job: BuildLogService
         displayName: Build Log Service
         steps:
