@@ -37,7 +37,7 @@ stages:
     displayName: Create and push all container images
     jobs:
       - job: BuildArkade
-        displayName: Build and Publish Arkade
+        displayName: Build Arkade
         steps:
           - task: Docker@2
             displayName: Build Arkade
@@ -62,7 +62,7 @@ stages:
             condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
       - job: BuildInvitation
-        displayName: Build and Publish Invitation
+        displayName: Build Invitation
         steps:
           - task: Docker@2
             displayName: Build invitation
@@ -87,7 +87,7 @@ stages:
             condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
       - job: BuildLogService
-        displayName: Build and Publish Log Service
+        displayName: Build Log Service
         steps:
           - task: Docker@2
             displayName: Build log service
@@ -112,7 +112,7 @@ stages:
             condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
       - job: BuildMailer
-        displayName: Build and Publish Mailer
+        displayName: Build Mailer
         steps:
           - task: Docker@2
             displayName: Build mailer
@@ -137,7 +137,7 @@ stages:
             condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
       - job: BuildChecksumService
-        displayName: Build and Publish Checksum Service
+        displayName: Build Checksum Service
         steps:
           - task: Docker@2
             displayName: Build checksum service
@@ -162,7 +162,7 @@ stages:
             condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
       - job: BuildDeleteService
-        displayName: Build and Publish Delete Service
+        displayName: Build Delete Service
         steps:
           - task: Docker@2
             displayName: Build delete service
@@ -187,7 +187,7 @@ stages:
             condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
       - job: BuildAVScanner
-        displayName: Build and Publish AV Scanner
+        displayName: Build AV Scanner
         steps:
           - task: Docker@2
             displayName: Build AV scanner
@@ -212,7 +212,7 @@ stages:
             condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
 
       - job: BuildTusd
-        displayName: Build and Publish Tusd
+        displayName: Build Tusd
         steps:
           - task: Docker@2
             displayName: Build tusd container
