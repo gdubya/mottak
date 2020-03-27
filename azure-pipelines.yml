@@ -32,35 +32,7 @@ variables:
   imagePullSecret: 'arkivverket-pull-secret'
   containerRegistry: 'arkivverket.azurecr.io'
 
-parameters:
-  buildJobs:
-    - key: Arkade
-      value: arkade5
-    - key: Invitation
-      value: invitation
-    - key: Log
-      value: log
-    - key: Mailer
-      value: mailer
-    - key: Checksum
-      value: s3-checksum256
-    - key: Delete
-      value: s3-delete
-    - key: ScanTar
-      value: s3-scan-tar
-    - key: Tusd
-      value: tusd
-
 stages:
-  - stage: TestEach
-    displayName: Test each loop
-    jobs:
-    ${{ each part in parameters.buildJobs }}:
-      - job: ${{ part.key }}
-        displayName: Print ${{ part.key }}
-        steps:
-          - script: 'echo ${{ part.value }}'
-
   - stage: BuildContainers
     displayName: Build all container images
     jobs:
