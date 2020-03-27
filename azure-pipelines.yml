@@ -34,14 +34,22 @@ variables:
 
 parameters:
   buildJobs:
-    Arkade: arkade5
-    Invitation: invitation
-    Log: log
-    Mailer: mailer
-    Checksum: s3-checksum256
-    Delete: s3-delete
-    ScanTar: s3-scan-tar
-    Tusd: tusd
+    - key: Arkade
+      value: arkade5
+    - key: Invitation
+      value: invitation
+    - key: Log
+      value: log
+    - key: Mailer
+      value: mailer
+    - key: Checksum
+      value: s3-checksum256
+    - key: Delete
+      value: s3-delete
+    - key: ScanTar
+      value: s3-scan-tar
+    - key: Tusd
+      value: tusd
 
 stages:
   - stage: TestEach
