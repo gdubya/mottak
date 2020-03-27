@@ -32,6 +32,7 @@ variables:
   imagePullSecret: 'arkivverket-pull-secret'
   containerRegistry: 'arkivverket.azurecr.io'
 
+parameters:
   buildJobs:
     Arkade: arkade5
     Invitation: invitation
@@ -46,7 +47,7 @@ stages:
   - stage: TestEach
     displayName: Test each loop
     jobs:
-    ${{ each part in buildJobs }}:
+    ${{ each part in parameters.buildJobs }}:
       - job: ${{ part.key }}
         displayName: Print ${{ part.key }}
         steps:
