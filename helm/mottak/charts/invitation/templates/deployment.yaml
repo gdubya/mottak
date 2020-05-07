@@ -33,13 +33,12 @@ spec:
           # pick it here so the inviter can encode this in the URL
           # Override this:
           - name:   UPLOAD_URL
-            value: OVERRIDE_IN_PATCH
-            # XSS protection
-          - name: APPLICATION_SECRET
+            value: {{ required "invitation: set upload_url during deployment" .Values.upload_url | quote }}
+          - name: APPLICATION_SECRET # XSS protection
             value: mottak-invitation-application-secret-inject@azurekeyvault
           - name: DBSTRING
             value: mottak-invitation-dbstring-inject@azurekeyvault
           - name: MAILGUN_API_KEY
             value: mottak-invitation-mailgun-api-key-inject@azurekeyvault
           - name: MAILGUN_DOMAIN
-            value: ""
+            value: {{ required "invitation: set a mailgun_domain during deployment" .Values.mailgun_domain | quote }}
