@@ -1,0 +1,11 @@
+apiVersion: spv.no/v1alpha1
+kind: AzureKeyVaultSecret
+metadata:
+  name: mottak-invitation-dbstring-inject
+  namespace: mottak
+spec:
+  vault:
+    name: arkivverketvault
+    object:
+      name: mottak-invitation-dbstring
+      type: secret
