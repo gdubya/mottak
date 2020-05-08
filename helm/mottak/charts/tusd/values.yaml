@@ -5,8 +5,8 @@
 replicaCount: 1
 
 image:
-  repository: nginx
-  pullPolicy: IfNotPresent
+  repository: arkivverket.azurecr.io/mottak/tusd
+  pullPolicy: Always
 
 imagePullSecrets: []
 nameOverride: ""

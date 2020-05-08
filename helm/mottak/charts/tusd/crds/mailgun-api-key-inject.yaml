@@ -1,0 +1,11 @@
+apiVersion: spv.no/v1alpha1
+kind: AzureKeyVaultSecret
+metadata:
+  name: mottak-tusd-mailgun-api-key-inject
+  namespace: mottak
+spec:
+  vault:
+    name: arkivverketvault
+    object:
+      name: mottak-tusd-mailgun-api-key
+      type: secret
