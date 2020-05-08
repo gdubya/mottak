@@ -2,54 +2,47 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "tusd.fullname" . }}
-  labels:
-    {{- include "tusd.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "tusd.selectorLabels" . | nindent 6 }}
+      run: tusd
   template:
     metadata:
       labels:
-        {{- include "tusd.selectorLabels" . | nindent 8 }}
+        run: tusd
     spec:
-    {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
-      serviceAccountName: {{ include "tusd.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: gcs
+          secret:
+            secretName: gcs-cred
+
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-    {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
-    {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
+      - image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        name: tusd-container
+        ports:
+        - containerPort: 1080
+          protocol: TCP
+        # GCS auth happends through a magic JSON file.
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 1080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        # If using GCS as a backend we must use the native interface
+        # because of compat issues tusd <--> gcs
+        volumeMounts:
+          - name: gcs
+            mountPath: "/etc/gcs"
+            readOnly: true
+        env:
+            # Override this if outside google:
+            # If on AWS, this should be unset, methinks.
+          - name: DBSTRING
+            value: mottak-tusd-dbstring-inject@azurekeyvault
+          - name: MAILGUN_API_KEY
+            value: mottak-tusd-mailgun-api-key-inject@azurekeyvault
+          - name: MAILGUN_DOMAIN
+            value: {{ required "tusd: set a mailgun_domain during deployment" .Values.mailgun_domain | quote }}
