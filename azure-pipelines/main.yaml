@@ -27,233 +27,104 @@ pool:
 variables:
   DOCKER_BUILDKIT: 1
   dockerRegistryServiceConnection: 'arkivverket'
-  clusterName: 'arkivverket-prod-mottak'
+  clusterName: 'arkivverket-prod'
   namespace: 'mottak'
-  imagePullSecret: 'arkivverket-pull-secret'
-  containerRegistry: 'arkivverket.azurecr.io'
-
+  containerRepo: 'mottak'
 
 stages:
-  - stage: BuildContainers
+  - stage: Build
     displayName: Build all container images
     jobs:
       - job: BuildArkade
         displayName: Build Arkade
         steps:
-          - task: Docker@2
-            displayName: Build Arkade
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/arkade5
-              command: build
-              Dockerfile: arkade5/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
-
-          - task: Docker@2
-            displayName: Push Arkade
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/arkade5
-              command: push
-              Dockerfile: arkade5/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
-            condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
+          - template: build.yaml
+            parameters:
+              appName: 'arkade5'
+              containerRepo: 'mottak'
+              containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
       - job: BuildInvitation
         displayName: Build Invitation
         steps:
-          - task: Docker@2
-            displayName: Build invitation
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/invitation
-              command: build
-              Dockerfile: invitation/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
-
-          - task: Docker@2
-            displayName: Push invitation
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/invitation
-              command: push
-              Dockerfile: invitation/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
-            condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
-
-          - task: PublishPipelineArtifact@1
-            inputs:
-              artifactName: 'invitation-artifacts'
-              targetPath: 'k8s/invitation'
-            condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
-
-      - job: BuildLogService
-        displayName: Build Log Service
-        steps:
-          - task: Docker@2
-            displayName: Build log service
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/log
-              command: build
-              Dockerfile: log/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
-
-          - task: Docker@2
-            displayName: Push log service
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/log
-              command: push
-              Dockerfile: log/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
-            condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
+          - template: build.yaml
+            parameters:
+              appName: 'invitation'
+              containerRepo: 'mottak'
+              containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
       - job: BuildMailer
         displayName: Build Mailer
         steps:
-          - task: Docker@2
-            displayName: Build mailer
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/mailer
-              command: build
-              Dockerfile: mailer/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
-
-          - task: Docker@2
-            displayName: Push mailer
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/mailer
-              command: push
-              Dockerfile: mailer/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
-            condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
+          - template: build.yaml
+            parameters:
+              appName: 'mailer'
+              containerRepo: 'mottak'
+              containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
       - job: BuildChecksumService
         displayName: Build Checksum Service
         steps:
-          - task: Docker@2
-            displayName: Build checksum service
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/s3-checksum256
-              command: build
-              Dockerfile: s3-checksum256/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
-
-          - task: Docker@2
-            displayName: Push checksum service
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/s3-checksum256
-              command: push
-              Dockerfile: s3-checksum256/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
-            condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
+          - template: build.yaml
+            parameters:
+              appName: 's3-checksum256'
+              containerRepo: 'mottak'
+              containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
       - job: BuildDeleteService
         displayName: Build Delete Service
         steps:
-          - task: Docker@2
-            displayName: Build delete service
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/s3-delete
-              command: build
-              Dockerfile: s3-delete/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
+          - template: build.yaml
+            parameters:
+              appName: 's3-delete'
+              containerRepo: 'mottak'
+              containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
-          - task: Docker@2
-            displayName: Push delete service
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/s3-delete
-              command: push
-              Dockerfile: s3-delete/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
-            condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
+      - job: BuildDeleteService
+        displayName: Build Rename Service
+        steps:
+          - template: build.yaml
+            parameters:
+              appName: 's3-rename'
+              containerRepo: 'mottak'
+              containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
       - job: BuildAVScanner
         displayName: Build AV Scanner
         steps:
-          - task: Docker@2
-            displayName: Build AV scanner
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/s3-scan-tar
-              command: build
-              Dockerfile: s3-scan-tar/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
-
-          - task: Docker@2
-            displayName: Push AV scanner
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/s3-scan-tar
-              command: build
-              Dockerfile: s3-scan-tar/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
-            condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
+          - template: build.yaml
+            parameters:
+              appName: 's3-scan-tar'
+              containerRepo: 'mottak'
+              containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
       - job: BuildTusd
         displayName: Build Tusd
         steps:
-          - task: Docker@2
-            displayName: Build tusd container
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/tusd
-              command: build
-              Dockerfile: tusd/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
+          - template: build.yaml
+            parameters:
+              appName: 'tusd'
+              containerRepo: 'mottak'
+              containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
-          - task: Docker@2
-            displayName: Push tusd container
-            inputs:
-              containerRegistry: arkivverket
-              repository: mottak/tusd
-              command: build
-              Dockerfile: tusd/Dockerfile
-              tags: |
-                latest
-                $(Build.SourceBranchName)
-            condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
+
+  - stage: Package
+    displayName: Package Mottak as Helm Chart
+    dependsOn: Build
+    condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
+    jobs:
+      job:
+        displayName: Package as Helm Chart
+        steps:
+          - template: package.yaml
+            parameters:
+              appName: 'mottak'
+              helmPackageArtifactName: 'mottak-helm-package'
+
 
   - stage: Deploy
     displayName: Deploy Stage
-    dependsOn: BuildContainers
+    dependsOn: Package
     condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
     jobs:
       - deployment: DeployInvitation
@@ -262,38 +133,10 @@ stages:
           runOnce:
             deploy:
               steps:
-                - task: DownloadPipelineArtifact@2
-                  inputs:
-                    artifactName: 'invitation-artifacts'
-                    downloadPath: '$(System.ArtifactsDirectory)/invitation'
-                # This task is needed so that the deploy task can give the
-                # secrets to the cluster in the deploy task
-                - task: KubernetesManifest@0
-                  displayName: Create imagePullSecret
-                  inputs:
-                    action: createSecret
-                    secretName: $(imagePullSecret)
-                    namespace: $(namespace)
-                    dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
-                    kubernetesServiceConnection: $(clusterName)
-
-                - task: KubernetesManifest@0
-                  displayName: Deploy Invitation to Kubernetes cluster
-                  inputs:
-                    action: deploy
-                    namespace: $(namespace)
-                    manifests: |
-                      $(System.ArtifactsDirectory)/invitation/invitation-deployment.yaml
-                      $(System.ArtifactsDirectory)/invitation/invitation-service.yaml
-                    # imagePullSecrets will make the secrets needed to pull the
-                    # container image from the container image repository
-                    # available to the cluster
-                    imagePullSecrets: |
-                      $(imagePullSecret)
-                    # containers will find the container image in the yaml files
-                    # listed in manifests and add the tag.
-                    # In this case the tag is $(BuildId.SourceBranchName) which
-                    # will be replaced with the tag in git
-                    containers: |
-                      $(containerRegistry)/mottak/invitation:$(Build.SourceBranchName)
-                    kubernetesServiceConnection: $(clusterName)
+                - template: deploy.yaml
+                  parameters:
+                    appName: 'mottak'
+                    helmPackageArtifactName: 'mottak-helm-package'
+                    helmReleaseName: 'mottak.mottak'
+                    clusterName: ${{ variables.clusterName }}
+                    namespace: ${{ variables.namespace }}

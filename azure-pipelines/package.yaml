@@ -1,0 +1,31 @@
+---
+parameters:
+  - name: appName
+    type: string
+
+  - name: helmPackageArtifactName
+    type: string
+
+  - name: helmVersion
+    type: string
+    default: '3.1.2'
+
+steps:
+
+  # Install Helm 3 on the agent (build machine)
+  - task: HelmInstaller@1
+    inputs:
+      helmVersionToInstall: ${{ parameters.helmVersion }}
+
+  # Package the helm chart
+  - task: HelmDeploy@0
+    displayName: Package ${{ parameters.appName }} as a Helm Chart Archive
+    inputs:
+      command: package
+      chartPath: ${{ parameters.helmChartPath }}/${{ parameters.appName }}
+      save: false
+      destination: $(Build.ArtifactStagingDirectory)
+
+  # Save the helm chart package for the deploy stage
+  - publish: $(Build.ArtifactStagingDirectory)/${{ parameters.appName }}-$(VersionFromTag).tgz
+    artifact: ${{ parameters.helmPackageArtifactName }}
