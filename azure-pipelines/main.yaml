@@ -113,7 +113,7 @@ stages:
     dependsOn: Build
     condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
     jobs:
-      job:
+      - job:
         displayName: Package as Helm Chart
         steps:
           - template: package.yaml
