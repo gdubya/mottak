@@ -127,6 +127,8 @@ stages:
     displayName: Deploy Stage
     dependsOn: Package
     condition: and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/'))
+    variables:
+      - group: 'mottak-prod'
     jobs:
       - deployment: DeployMottak
         environment: $(clusterName)
@@ -141,3 +143,7 @@ stages:
                     helmReleaseName: 'mottak.mottak'
                     clusterName: ${{ variables.clusterName }}
                     namespace: ${{ variables.namespace }}
+                    helmParameters: |
+                      tusd.mailgun_domain="$(tusdMailgunDomain)"
+                      invitation.mailgun_domain="$(invitationMailgunDomain)"
+                      invitation.upload_url="$(invitationUploadUrl)"
