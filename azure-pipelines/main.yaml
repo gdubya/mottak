@@ -81,14 +81,14 @@ stages:
               containerRepo: ${{ variables.containerRepo }}
               containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
-      # - job: BuildRenameService
-      #   displayName: Build Rename Service
-      #   steps:
-      #     - template: build.yaml
-      #       parameters:
-      #         appName: 's3-rename'
-      #         containerRepo: ${{ variables.containerRepo }}
-      #         containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
+      - job: BuildRenameService
+        displayName: Build Rename Service
+        steps:
+          - template: build.yaml
+            parameters:
+              appName: 's3-rename'
+              containerRepo: ${{ variables.containerRepo }}
+              containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
       - job: BuildAVScanner
         displayName: Build AV Scanner
