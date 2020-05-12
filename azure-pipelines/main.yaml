@@ -80,7 +80,7 @@ stages:
               containerRepo: 'mottak'
               containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
-      - job: BuildDeleteService
+      - job: BuildRenameService
         displayName: Build Rename Service
         steps:
           - template: build.yaml
