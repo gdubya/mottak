@@ -42,7 +42,7 @@ stages:
           - template: build.yaml
             parameters:
               appName: 'arkade5'
-              containerRepo: 'mottak'
+              containerRepo: ${{ variables.containerRepo }}
               containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
       - job: BuildInvitation
@@ -51,7 +51,7 @@ stages:
           - template: build.yaml
             parameters:
               appName: 'invitation'
-              containerRepo: 'mottak'
+              containerRepo: ${{ variables.containerRepo }}
               containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
       - job: BuildMailer
@@ -60,7 +60,7 @@ stages:
           - template: build.yaml
             parameters:
               appName: 'mailer'
-              containerRepo: 'mottak'
+              containerRepo: ${{ variables.containerRepo }}
               containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
       - job: BuildChecksumService
@@ -69,7 +69,7 @@ stages:
           - template: build.yaml
             parameters:
               appName: 's3-checksum256'
-              containerRepo: 'mottak'
+              containerRepo: ${{ variables.containerRepo }}
               containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
       - job: BuildDeleteService
@@ -78,7 +78,7 @@ stages:
           - template: build.yaml
             parameters:
               appName: 's3-delete'
-              containerRepo: 'mottak'
+              containerRepo: ${{ variables.containerRepo }}
               containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
       # - job: BuildRenameService
@@ -87,7 +87,7 @@ stages:
       #     - template: build.yaml
       #       parameters:
       #         appName: 's3-rename'
-      #         containerRepo: 'mottak'
+      #         containerRepo: ${{ variables.containerRepo }}
       #         containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
       - job: BuildAVScanner
@@ -96,7 +96,7 @@ stages:
           - template: build.yaml
             parameters:
               appName: 's3-scan-tar'
-              containerRepo: 'mottak'
+              containerRepo: ${{ variables.containerRepo }}
               containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
       - job: BuildTusd
@@ -105,7 +105,7 @@ stages:
           - template: build.yaml
             parameters:
               appName: 'tusd'
-              containerRepo: 'mottak'
+              containerRepo: ${{ variables.containerRepo }}
               containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
 
