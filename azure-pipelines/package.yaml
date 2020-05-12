@@ -12,7 +12,7 @@ parameters:
 
   - name: helmChartPath
     type: string
-    default: 'helm
+    default: 'helm'
 
 steps:
 
