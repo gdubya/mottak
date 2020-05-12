@@ -143,7 +143,7 @@ stages:
                     helmReleaseName: 'mottak.mottak'
                     clusterName: ${{ variables.clusterName }}
                     namespace: ${{ variables.namespace }}
-                    helmParameters: >-
-                      tusd.mailgun_domain="$(tusdMailgunDomain)"
-                      invitation.mailgun_domain="$(invitationMailgunDomain)"
-                      invitation.upload_url="$(invitationUploadUrl)"
+                    helmParameters: "\
+                      tusd.mailgun_domain=\"$(tusdMailgunDomain)\",\
+                      invitation.mailgun_domain=\"$(invitationMailgunDomain)\",\
+                      invitation.upload_url=\"$(invitationUploadUrl)\""
