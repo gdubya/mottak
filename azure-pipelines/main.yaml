@@ -111,7 +111,7 @@ stages:
   - stage: Package
     displayName: Package Mottak as Helm Chart
     dependsOn: Build
-    condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
+    condition: and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/'))
     jobs:
       - job:
         displayName: Package as Helm Chart
@@ -125,7 +125,7 @@ stages:
   - stage: Deploy
     displayName: Deploy Stage
     dependsOn: Package
-    condition: startsWith(variables['build.sourceBranch'], 'refs/tags/')
+    condition: and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/'))
     jobs:
       - deployment: DeployInvitation
         environment: $(clusterName)
