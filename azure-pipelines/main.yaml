@@ -30,7 +30,7 @@ variables:
   clusterName: 'arkivverket-prod'
   namespace: 'mottak'
   containerRepo: 'mottak'
-  System.Debug: true
+  # System.Debug: true
 
 stages:
   - stage: Build
