@@ -128,7 +128,7 @@ stages:
     dependsOn: Package
     condition: and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/'))
     jobs:
-      - deployment: DeployInvitation
+      - deployment: DeployMottak
         environment: $(clusterName)
         strategy:
           runOnce:
