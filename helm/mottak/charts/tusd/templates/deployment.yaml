@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: tusd-deployment
+  name: {{ include "tusd.fullname" . }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       run: tusd
@@ -18,8 +18,8 @@ spec:
             secretName: gcs-cred
 
       containers:
-      - image: arkivverket.azurecr.io/mottak/tusd
-        imagePullPolicy: Always
+      - image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         name: tusd-container
         ports:
         - containerPort: 1080
@@ -41,17 +41,8 @@ spec:
             # Override this if outside google:
             # If on AWS, this should be unset, methinks.
           - name: DBSTRING
-            valueFrom:
-              secretKeyRef:
-                name: invitation-dsn
-                key: invitation-dsn
+            value: mottak-tusd-dbstring-inject@azurekeyvault
           - name: MAILGUN_API_KEY
-            valueFrom:
-              secretKeyRef:
-                name: mailgun
-                key: apiKey
+            value: mottak-tusd-mailgun-api-key-inject@azurekeyvault
           - name: MAILGUN_DOMAIN
-            valueFrom:
-              secretKeyRef:
-                name: mailgun
-                key: emailDomain
+            value: {{ required "tusd: set a mailgun_domain during deployment" .Values.mailgun_domain | quote }}
