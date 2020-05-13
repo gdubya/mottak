@@ -8,7 +8,7 @@ parameters:
 
   - name: helmVersion
     type: string
-    default: '3.1.2'
+    default: '3.2.1'
 
   - name: helmChartPath
     type: string
