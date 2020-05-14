@@ -90,14 +90,14 @@ stages:
               containerRepo: ${{ variables.containerRepo }}
               containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
-      - job: BuildTusd
-        displayName: Build Tusd
-        steps:
-          - template: build.yaml
-            parameters:
-              appName: 'tusd'
-              containerRepo: ${{ variables.containerRepo }}
-              containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
+      # - job: BuildTusd
+      #   displayName: Build Tusd
+      #   steps:
+      #     - template: build.yaml
+      #       parameters:
+      #         appName: 'tusd'
+      #         containerRepo: ${{ variables.containerRepo }}
+      #         containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
   - stage: Package
     displayName: Package Mottak as Helm Chart
