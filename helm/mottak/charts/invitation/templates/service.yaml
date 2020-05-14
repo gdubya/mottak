@@ -3,14 +3,9 @@ kind: Service
 metadata:
   name:  invitation-service
 spec:
-  type: NodePort
-  ports:
-  - name: http
-    port: 80
-    targetPort: 80
   selector:
-    run:  invitation-app    # references the deployment
-  sessionAffinity: ClientIP
-  sessionAffinityConfig:
-    clientIP:
-      timeoutSeconds: 600
+    app:  invitation-app    # references the deployment
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
