@@ -39,3 +39,31 @@ You can view the Argo UI by setting up a kube proxy:
 kubectl -n argo port-forward deployment/argo-ui 8001:8001
 
 Then visit http://localhost:8001/ to view the UI.
+
+
+To deploy the mottak Helm Charts with Helm _manually_ (work in progress), do the following:
+
+* Make sure that your kubectl context points to the cluster you want to deploy to.
+
+* Check what is already there with the command:
+
+    helm ls -aA
+    
+* Find out which deploy-time parameters you need to set for each chart. Put these in a file called `values.yaml`.
+
+E.g.:
+
+```
+invitation:
+  mailgun_domain: ...
+  upload_url: ...
+
+tusd:
+  other stuff
+
+...
+```
+
+* Run the helm command against the cluster:
+
+    helm upgrade --install --namespace mottak --wait mottak.mottak path/to/mottak/toplevel/helm/chart --values values.yaml
