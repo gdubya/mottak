@@ -27,7 +27,7 @@ pool:
 variables:
   # DOCKER_BUILDKIT: 1
   dockerRegistryServiceConnection: 'arkivverket'
-  clusterName: 'arkivverket-prod'
+#  clusterName: 'arkivverket-prod'
   namespace: 'mottak'
   containerRepo: 'mottak'
   # System.Debug: true
@@ -112,15 +112,15 @@ stages:
               appName: 'mottak'
               helmPackageArtifactName: 'mottak-helm-package'
 
-  - stage: Deploy
-    displayName: Deploy Stage
+  - stage: DeployAksDev
+    displayName: Deploy AksDev
     dependsOn: Package
     condition: and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/'))
     variables:
-      - group: 'mottak-prod'
+      - group: 'aks-dev'
     jobs:
       - deployment: DeployMottak
-        environment: $(clusterName)
+        environment: 'aks-dev'
         strategy:
           runOnce:
             deploy:
@@ -130,9 +130,36 @@ stages:
                     appName: 'mottak'
                     helmPackageArtifactName: 'mottak-helm-package'
                     helmReleaseName: 'mottak.mottak'
-                    clusterName: ${{ variables.clusterName }}
+                    clusterName: 'aks-dev'
                     namespace: ${{ variables.namespace }}
                     helmParameters: "\
                       tusd.mailgun_domain=\"$(tusdMailgunDomain)\",\
                       invitation.mailgun_domain=\"$(invitationMailgunDomain)\",\
                       invitation.upload_url=\"$(invitationUploadUrl)\""
+
+
+  - stage: DeployMottakProd
+    displayName: Deploy MottakProd
+    dependsOn: Package
+    condition: and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/'))
+    variables:
+      - group: 'mottak-prod'
+    jobs:
+      - deployment: DeployMottak
+        environment: 'arkivverket-prod'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: deploy.yaml
+                  parameters:
+                    appName: 'mottak'
+                    helmPackageArtifactName: 'mottak-helm-package'
+                    helmReleaseName: 'mottak.mottak'
+                    clusterName: 'arkivverket-prod'
+                    namespace: ${{ variables.namespace }}
+                    helmParameters: "\
+                      tusd.mailgun_domain=\"$(tusdMailgunDomain)\",\
+                      invitation.mailgun_domain=\"$(invitationMailgunDomain)\",\
+                      invitation.upload_url=\"$(invitationUploadUrl)\""
+                      
