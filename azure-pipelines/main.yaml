@@ -27,7 +27,7 @@ pool:
 variables:
   # DOCKER_BUILDKIT: 1
   dockerRegistryServiceConnection: 'arkivverket'
-  clusterName: 'arkivverket-prod'
+#  clusterName: 'arkivverket-prod'
   namespace: 'mottak'
   containerRepo: 'mottak'
   # System.Debug: true
@@ -157,7 +157,7 @@ stages:
       - group: 'mottak-prod'
     jobs:
       - deployment: DeployMottak
-        environment: $(clusterName)
+        environment: 'arkivverket-prod'
         strategy:
           runOnce:
             deploy:
