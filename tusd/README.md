@@ -4,7 +4,7 @@ For AWS og Minio:
  * AWS_ACCESS_KEY_ID
  * AWS_SECRET_ACCESS_KEY
  * AWS_REGION
- * MY_ENDPOINT
+ * ENDPOINT
  * BUCKET
 
 See start.sh for details. 
