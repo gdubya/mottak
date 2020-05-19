@@ -15,9 +15,7 @@ if [ "$OBJECTSTORE" == "gcs" ]; then
 # handle Azure here if we're supporting it:
 else
     echo "Assuming we're using the S3 backend"
-    MY_ENDPOINT=$(echo $ENDPOINT|sed 's,https://,,g')
-    echo "Endpoint transformation: $ENDPOINT --> $MY_ENDPOINT"
-    TUSD_PARAMS="--hooks-dir /srv/tusd-hooks --behind-proxy --s3-bucket $BUCKET --s3-endpoint $MY_ENDPOINT"
+    TUSD_PARAMS="--hooks-dir /srv/tusd-hooks --behind-proxy --s3-bucket $BUCKET --s3-endpoint $ENDPOINT"
 fi
 
 echo tusd command line: "tusd $TUSD_PARAMS $OPT_PARAMS"
