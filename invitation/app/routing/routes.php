@@ -24,4 +24,11 @@ $routes->group(['namespace' => 'app\http\controllers', 'middleware' => ['securit
 
 		$routes->get('/receipt/{id}', 'Invitations::receipt', 'invitations.receipt')->patterns(['id' => '[0-9]+']);
 	});
+
+	$routes->group(['prefix' => 'log'], function(Routes $routes)
+	{
+		$routes->get('/{uuid}', 'Logproxy::view', 'logproxy.view');
+
+		$routes->get('/attachment/{id}', 'Logproxy::attachment', 'logproxy.attachment');
+	});
 });
