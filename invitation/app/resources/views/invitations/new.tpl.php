@@ -1,7 +1,7 @@
 {% extends:'body' %}
 
 {% block:content %}
-<h2>Opprett ny opplasting</h2>
+<h2>Opprett ny invitasjon til opplasting</h2>
 <hr>
 <form method="POST" enctype="multipart/form-data">
 	<div class="form-group">

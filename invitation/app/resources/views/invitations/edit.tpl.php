@@ -1,7 +1,7 @@
 {% extends:'body' %}
 
 {% block:content %}
-<h2>{% if(empty($invitation->archive_type_id)) %}Fullfør opprettelse av opplasting{% else %}Rediger opplasting{% endif %}</h2>
+<h2>{% if(empty($invitation->archive_type_id)) %}Fullfør opprettelse av invitasjon til opplasting{% else %}Rediger invitasjon til opplasting{% endif %}</h2>
 <hr>
 <form method="post">
 	<div class="form-group">
@@ -11,6 +11,10 @@
 	<div class="form-group">
 		<label for="email">E-postadresse</label>
 		<input  type="text" name="email" id="email" class="form-control" placeholder="Fyll ut e-postadresse" value="{{$_old_['email'], default: isset($_old_['email']) ? '' : $invitation->email}}">
+	</div>
+	<div class="form-group">
+		<label for="archive">Arkivnavn</label>
+		<input  type="text" name="archive" id="archive" class="form-control" placeholder="Fyll ut arkivnavn" value="{{$invitation->archive}}" disabled>
 	</div>
 	<div class="form-group">
 		<label for="uuid">UUID</label>

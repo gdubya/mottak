@@ -2,11 +2,11 @@
 
 {% block:content %}
 
-<h2>Opprett ny opplasting</h2>
+<h2>Opprett ny invitasjon til opplasting</h2>
 
 <hr>
 
-<a class="btn btn-primary btn-block" href="{{$_url->toRoute('invitations.new')}}" role="button">Opprett ny opplasting</a>
+<a class="btn btn-primary btn-block" href="{{$_url->toRoute('invitations.new')}}" role="button">Opprett ny invitasjon til opplasting</a>
 
 <br>
 
