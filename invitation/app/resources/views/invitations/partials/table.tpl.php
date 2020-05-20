@@ -25,7 +25,7 @@
 					<td class="align-middle">{{$invitation->updated_at->format('Y-m-d H:i:s')}}</td>
 					<td class="align-middle"></td>
 					<td class="align-middle">{{$invitation->archiveType->type, default: 'Ukjent'}}</td>
-					<td class="align-middle"></td>
+					<td class="align-middle">{{$invitation->status, default: 'Ukjent'}}</td>
 					<td class="align-middle"></td>
 				</tr>
 			{% endforeach %}
