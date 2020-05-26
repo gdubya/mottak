@@ -95,7 +95,7 @@ stages:
         steps:
           - template: build.yaml
             parameters:
-              appName: 's3-scan-tar'
+              appName: 's3-unpack'
               containerRepo: ${{ variables.containerRepo }}
               containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
