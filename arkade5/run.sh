@@ -4,15 +4,16 @@ set -e
 echo "Object:        $OBJECT"
 echo "Archieve type: $ARCHIEVE_TYPE"
 echo "UUID:          $UUID"
+echo "Account        $AZURE_ACCOUNT"
 
 STORE="/objectstore"
-TARGET="/tmp/$UUID.tar"
+TARGET="$STORE/$UUID/content"
+CONTAINER="$UUID-0"
 
 mkdir -p input output tmp
 mkdir -p $STORE
-gcsfuse --key-file "$AUTH_TOKEN" "$BUCKET" "$STORE"
-ln -vs "$STORE/$OBJECT" "$TARGET"
 
+goofys wasb://${CONTAINER}@${AZURE_ACCOUNT}.blob.core.windows.net /objectstore
 
 dotnet /opt/Arkade5CLI-1.5.1/Arkivverket.Arkade.CLI.dll \
     -a $TARGET \
