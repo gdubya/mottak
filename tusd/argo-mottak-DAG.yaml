@@ -202,7 +202,8 @@ spec:
           value: 'mottak'
         - name: AZURE_ACCOUNT
           value: mottakmvp
-        - name: AZURE_KEY
+          # Not that the key is in a slightly different variable here.
+        - name: AZURE_STORAGE_KEY
           valueFrom:
               secretKeyRef:
                   name: storage-key
