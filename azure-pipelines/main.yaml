@@ -121,8 +121,36 @@ stages:
               appName: 'mottak'
               helmPackageArtifactName: 'mottak-helm-package'
 
-  - stage: Deploy
-    displayName: Deploy Stage
+  - stage: DeployAksDev
+    displayName: Deploy AksDev
+    dependsOn: Package
+    condition: and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/'))
+    variables:
+      - group: 'aks-dev'
+    jobs:
+      - deployment: DeployMottak
+        environment: 'aks-dev'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: deploy.yaml
+                  parameters:
+                    appName: 'mottak'
+                    helmPackageArtifactName: 'mottak-helm-package'
+                    helmReleaseName: 'mottak.mottak'
+                    clusterName: 'aks-dev'
+                    azureResourceGroup: 'common-dev'
+                    namespace: ${{ variables.namespace }}
+                    helmParameters: "\
+                      tusd.mailgun_domain=\"$(tusdMailgunDomain)\",\
+                      invitation.mailgun_domain=\"$(invitationMailgunDomain)\",\
+                      invitation.upload_url=\"$(invitationUploadUrl)\""
+
+
+  # Old cluster -- will be removed soon
+  - stage: DeployMottakProd
+    displayName: Deploy MottakProd
     dependsOn: Package
     condition: and(succeeded(), startsWith(variables['build.sourceBranch'], 'refs/tags/'))
     variables:
@@ -139,7 +167,8 @@ stages:
                     appName: 'mottak'
                     helmPackageArtifactName: 'mottak-helm-package'
                     helmReleaseName: 'mottak.mottak'
-                    clusterName: ${{ variables.clusterName }}
+                    clusterName: 'arkivverket-prod'
+                    azureResourceGroup: 'arkivverket'
                     namespace: ${{ variables.namespace }}
                     helmParameters: "\
                       tusd.mailgun_domain=\"$(tusdMailgunDomain)\",\
