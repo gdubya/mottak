@@ -232,17 +232,14 @@ spec:
     container:
       image: arkivverket.azurecr.io/mottak/mailer
       imagePullPolicy: Always
-      envFrom:
-        - configMapRef:
-            name: workflow-environment
       env:
         - name: MAILGUN_DOMAIN
           value: sandbox7cbdab032f7b4321af274439b1f353a2.mailgun.org
         - name: MAILGUN_API_KEY
           valueFrom:
             secretKeyRef:
-              name: mailgun
-              key: apiKey
+              name: mailgun-secret
+              key: secret-value
         - name: NAME
           value: '{{workflow.parameters.NAME}}'
         - name: RECIPIENT
