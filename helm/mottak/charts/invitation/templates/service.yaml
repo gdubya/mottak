@@ -3,9 +3,9 @@ kind: Service
 metadata:
   name:  invitation-service
 spec:
-  selector:
-    app:  invitation-app    # references the deployment
+  type: ClusterIP
   ports:
-    - name: http
-      port: 80
-      targetPort: 80
+  - name: http
+    port: 80
+  selector:
+    run:  invitation-app    # references the deployment

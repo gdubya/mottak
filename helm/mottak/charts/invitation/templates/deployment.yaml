@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "invitation.fullname" . }}
+  name: invitation-deployment
   labels:
     app: invitation-app
 spec:
@@ -16,17 +16,11 @@ spec:
     spec:
       containers:
       - image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
-        name: {{ .Chart.Name }}
+        name: invitation-container
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: 80
           protocol: TCP
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 80
-          initialDelaySeconds: 10
-          periodSeconds: 10
         env:
           # We need to find a way to register the service
           # that provides the URL to tusd so we can
