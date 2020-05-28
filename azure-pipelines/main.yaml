@@ -140,6 +140,7 @@ stages:
                     helmPackageArtifactName: 'mottak-helm-package'
                     helmReleaseName: 'mottak.mottak'
                     clusterName: 'aks-dev'
+                    azureSubscriptionEndpoint: 'common-dev'
                     azureResourceGroup: 'common-dev'
                     namespace: ${{ variables.namespace }}
                     helmParameters: "\
@@ -168,6 +169,7 @@ stages:
                     helmPackageArtifactName: 'mottak-helm-package'
                     helmReleaseName: 'mottak.mottak'
                     clusterName: 'arkivverket-prod'
+                    azureSubscriptionEndpoint: 'pipeline'
                     azureResourceGroup: 'arkivverket'
                     namespace: ${{ variables.namespace }}
                     helmParameters: "\
