@@ -53,7 +53,7 @@ steps:
       releaseName: ${{ parameters.helmReleaseName }}
       install: true
       force: true
-      arguments: --atomic
+      arguments: --atomic --debug
       kubernetesCluster: ${{ parameters.clusterName }}
       azureSubscriptionEndpoint: 'pipeline'
       azureResourceGroup: ${{ parameters.azureResourceGroup }}
