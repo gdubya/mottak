@@ -5,8 +5,6 @@
 # - Perhaps make the arkade-report and the avlog into globalName artifacts so the can
 # be mocked by other tasks as a way to work around failure tasks failing the flow.
 
-
-
 apiVersion: argoproj.io/v1alpha1
 kind: Workflow
 metadata:
@@ -178,6 +176,12 @@ spec:
               secretKeyRef:
                   name: storage-key
                   key: secret-value
+    outputs:
+      artifacts:
+        - name: unpacklog
+          path: /tmp/unpack.log
+          archive:
+            none: {}
 
   - name: arkade5
     container:
@@ -226,7 +230,7 @@ spec:
         path: /tmp/message
         raw:
           data: |
-            An archieve ({{workflow.parameters.OBJECT}}) of type {{workflow.parameters.ARCHIEVE_TYPE}} has been processed.
+            An archieve ({{workflow.parameters.OBJECT}} stored as {{workflow.parameters.OBJECT}}) of type {{workflow.parameters.ARCHIEVE_TYPE}} has been processed.
             Attached to this email is the report from Arkade5 and the log from the anti-virus scan.
             Please review.
     container:
