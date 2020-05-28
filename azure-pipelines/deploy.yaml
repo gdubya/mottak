@@ -12,6 +12,9 @@ parameters:
   - name: clusterName
     type: string
 
+  - name: azureResourceGroup
+    type: string
+
   - name: namespace
     type: string
 
@@ -52,6 +55,6 @@ steps:
       arguments: --force
       kubernetesCluster: ${{ parameters.clusterName }}
       azureSubscriptionEndpoint: 'pipeline'
-      azureResourceGroup: 'arkivverket'
+      azureResourceGroup: ${{ parameters.azureResourceGroup }}
       namespace: ${{ parameters.namespace }}
       overrideValues: ${{ parameters.helmParameters }}
