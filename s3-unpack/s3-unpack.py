@@ -20,12 +20,27 @@ storage = ArkivverketObjectStorage()
 
 obj = storage.download_stream(bucket, filename)
 file_stream = MakeIterIntoFile(obj)
+art_log_fh = open('/tmp/unpack.log', 'w')
 
+
+TAR_ERROR = 10
+UPLOAD_ERROR = 11
+OBJECTSTORE_ERROR = 12
+
+
+def artifact_log(s):
+    art_log_fh.write(s + "\n")
+    
 
 def create_file(name, handle, target_container):
     logging.debug(f"Creating {name} in {target_container}")
     # handle = iter(handle)
-    storage.upload_stream(target_container, name, handle)
+    try:
+        storage.upload_stream(target_container, name, handle)
+    except Exception as e:
+        logging.error(f'Failed to do streaming upload to {target_container} / {name}: {e}')
+        exit(UPLOAD_ERROR)
+
 
 
 def unpack_tar(object_name, target_container):
@@ -35,13 +50,14 @@ def unpack_tar(object_name, target_container):
     except Exception as e:
         logging.error(f'Failed to open stream to object: {bucket} / {filename}')
         logging.error(f'Error: {e}')
-        raise
+        exit(TAR_ERROR)
     for member in tfi:
         # If it is a directory or if a slash is the last char (root node?)
         if member.isdir() or member.name[-1] == '/':
             # Handle is none - likely a directory.
-            logging.info(f'Skipping {member.name} of type {int(member.type)} and size {member.size}')
+            artifact_log(f'Skipping {member.name} of type {int(member.type)} and size {member.size}')
             continue
+        artifact_log(f'Unpacking {member.name} of type {int(member.type)} and size {member.size}')
         handle = tf.extractfile(member)
         create_file(name=member.name, handle=handle, target_container= target_container)
 
@@ -61,6 +77,7 @@ def main():
     target = create_target(target_container)
     #target = storage.get_container(target_container)
     unpack_tar(filename, target)
+    art_log_fh.close()
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
