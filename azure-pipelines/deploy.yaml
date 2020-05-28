@@ -52,7 +52,8 @@ steps:
       chartName: ${{ parameters.appName }}
       releaseName: ${{ parameters.helmReleaseName }}
       install: true
-      arguments: --force
+      force: true
+      recreate: true
       kubernetesCluster: ${{ parameters.clusterName }}
       azureSubscriptionEndpoint: 'pipeline'
       azureResourceGroup: ${{ parameters.azureResourceGroup }}
