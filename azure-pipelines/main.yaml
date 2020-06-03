@@ -99,6 +99,15 @@ stages:
               containerRepo: ${{ variables.containerRepo }}
               containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
+      - job: BuildLogger
+        displayName: Build logger
+        steps:
+          - template: build.yaml
+            parameters:
+              appName: 'artifact-logger'
+              containerRepo: ${{ variables.containerRepo }}
+              containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
+
       - job: BuildTusd
         displayName: Build Tusd
         steps:
