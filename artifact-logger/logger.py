@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import requests
 from requests.exceptions import HTTPError
 import os
