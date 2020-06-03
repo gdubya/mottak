@@ -88,7 +88,7 @@ return
 	 */
 	'commands' =>
 	[
-		'greeting' => app\console\commands\Greeting::class,
+		'setup' => app\console\commands\Setup::class,
 	],
 
 	/*
