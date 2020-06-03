@@ -1,16 +1,20 @@
 [tool.poetry]
-name = "s3-checksum256"
+name = "artifact-logger"
 version = "0.1.0"
-description = "Container for calculating SHA 256 checksum on objectstore objects."
+description = "Container for picking up Argo Artifacts and logging them in the log-archive-service."
 authors = ["Per Buer <per.buer@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-py-objectstore = { git = "https://github.com/arkivverket/py-objectstore.git" }
+python-magic = "^0.4.18"
+python-dotenv = "^0.13.0"
+requests = "^2.23.0"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.4.4"
 python-dotenv = "^0.13.0"
+autopep8 = "^1.5.3"
+pudb = "^2019.2"
 
 [build-system]
 requires = ["poetry>=0.12"]

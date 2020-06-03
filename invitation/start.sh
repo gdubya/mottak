@@ -3,6 +3,7 @@
 
 # echo DSN: $DBSTRING
 
+php /srv/app/reactor setup
 php /srv/app/reactor migrate.up
 
 apache2-foreground
