@@ -50,7 +50,7 @@ spec:
                 - name: avlog
                   from: "{{tasks.task-avscan.outputs.artifacts.avlog}}"
                 - name: unpacklog
-                  from: "{{tasks.task-unpack.output.artifacts.unpacklog}}"
+                  from: "{{tasks.task-unpack.outputs.artifacts.unpacklog}}"
             # Done: send mail....
           - name: task-nytt-arkiv
             template: nytt-arkiv
@@ -63,7 +63,7 @@ spec:
                 - name: avlog
                   from: "{{tasks.task-avscan.outputs.artifacts.avlog}}"
                 - name: unpack
-                  from: "{{tasks.task-unpack.output.artifacts.unpacklog}}"
+                  from: "{{tasks.task-unpack.outputs.artifacts.unpacklog}}"
 
     - name: sjekksum-kontroll
       container:
