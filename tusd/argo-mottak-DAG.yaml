@@ -254,6 +254,11 @@ spec:
             value: ok
           - name: MESSAGE
             value: "Logging artifacts"
+          - name: TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: archive-log-service-apikey
+                key: secret-value
 
     - name: nytt-arkiv
       inputs:
