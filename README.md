@@ -26,8 +26,13 @@ The application allow someone to upload a [DIAS](https://www.arkivverket.no/forv
  - Kubernetes with Argo for workflow processing
  - Postgresql for metadata for invitations
  - Objectstore for archieves - we're using Azure Blob Storage but adding support for others is resonable simple, thanks to libcloud.
+ - ansible - for automated allcation of resources
+ - helm for deploying into the namespace
+ - argo - for viewing the status of the workflows, debugging and cleaning up
 
 ## How to setup a new enviroment
+
+Note that most of this should happen more or less automatically by Ansible and Helm. Please consult the Ansible playbooks.
 
  - get a kubernetes cluster and make sure kubectl is operational
  - make sure the cluster has akv2k8s running so we can get to the secrets
