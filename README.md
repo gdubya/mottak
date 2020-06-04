@@ -45,13 +45,15 @@ At this point everything should work.
 ## Secrets used 
 
 We assume the following secrets are in your vault.
- * archive-log-service-apikey
- * archive-log-service-dsn
- * invitation-secret
- * mailgun-secret
- * mottakmvp-dsn
- * storage-key
- * storage-user
+
+| secret name                | format                               | used by                                     |
+| archive-log-service-apikey | random string (no funny characters)  | archive-log-service and the logger          |
+| archive-log-service-dsn    | psycop2 connection url               | archive-log-service                         |
+| invitation-secret          | random string                        | internally in invitation (protect from XSS) |
+| mailgun-secret             | whatever mailgun gives you           | invitation, mailer                          |
+| mottakmvp-dsn              | PHP DB DSN (key/value)               | invitation, tusd-hooks                      |
+| storage-key                | What Azure gives you                 | s3-*, arkade, tusd                          |
+| storage-user               | What Azure gives you.                | s3-*, arkade, tusd                          |
 
 ## How to make sure this thing works
 
