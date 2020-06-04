@@ -14,12 +14,12 @@ CONTAINER="$UUID-0"
 mkdir -p input output tmp
 mkdir -p $STORE
 
-/usr/local/bin/goofys wasb://${CONTAINER}@${AZURE_ACCOUNT}.blob.core.windows.net $STORE
+/usr/local/bin/goofys "wasb://${CONTAINER}@${AZURE_ACCOUNT}.blob.core.windows.net" "$STORE"
 
 dotnet /opt/Arkade5CLI-1.5.1/Arkivverket.Arkade.CLI.dll \
-    -a $TARGET \
+    -a "$TARGET" \
     -p /opt/tmp -o /opt/output -s packing \
-    -m /tmp/dias-mets.xml -t $ARCHIEVE_TYPE
+    -m /tmp/dias-mets.xml -t "$ARCHIEVE_TYPE"
 
 # The report is available at /opt/output/Arkaderapport-$UUID.html
 # Move it to a know location so Argo can get at it.
