@@ -1,5 +1,5 @@
 FROM python:3.8-slim-buster
-RUN apt-get update && apt-get install -y --no-install-recommends python3 git && apt-get clean
+RUN apt-get update && apt-get install -y --no-install-recommends python3 git libmagic1 && apt-get clean
 RUN pip install poetry
 RUN mkdir -p /opt
 WORKDIR /opt

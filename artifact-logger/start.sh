@@ -4,5 +4,5 @@
 # we need to change stuff.
 
 
-/opt/logger.py
+poetry run /opt/logger.py
 
