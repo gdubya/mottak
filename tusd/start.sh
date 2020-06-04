@@ -19,5 +19,5 @@ else
 fi
 
 echo tusd command line: "tusd $TUSD_PARAMS $OPT_PARAMS"
-tusd $TUSD_PARAMS $OPT_PARAMS
+tusd "$TUSD_PARAMS" "$OPT_PARAMS"
 
