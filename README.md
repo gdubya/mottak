@@ -47,6 +47,7 @@ At this point everything should work.
 We assume the following secrets are in your vault.
 
 | secret name                | format                               | used by                                     |
+| -------------------------- | ------------------------------------ | ------------------------------------------- |
 | archive-log-service-apikey | random string (no funny characters)  | archive-log-service and the logger          |
 | archive-log-service-dsn    | psycop2 connection url               | archive-log-service                         |
 | invitation-secret          | random string                        | internally in invitation (protect from XSS) |
