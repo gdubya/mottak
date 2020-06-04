@@ -1,5 +1,5 @@
 # Todo:
-# - move more things into secrets that are generally available
+# - delete the archive after unpack. This makes debugging the DAG a bit more painful.
 # - improve readability if possible
 # - Figure out how we can prevents tasks with indirect dependencies to run.
 # - Perhaps make the arkade-report and the avlog into globalName artifacts so the can
@@ -16,33 +16,40 @@ spec:
       dag:
         tasks:
           # Todo - make the condition less verbose so we don't have to state every condition. dont know how.
-          - name: task-kontroll
-            template: sjekksum-kontroll
-          - name: task-sjekksum-feil
-            template: sjekksum-feil
-            dependencies: [task-kontroll]
-            when: "'{{tasks.task-kontroll.outputs.parameters.checksum_result}}' != 'ok'"
+          - name: task-checksum
+            template: checksum-check
+          - name: checksum-logging
+            template: checksum-logger
+            dependencies: [task-checksum]
+            arguments:
+              artifacts:
+                - name: checksum-log
+                  from: "{{tasks.task-checksum.outputs.artifacts.checksumlog}}"            
+          - name: task-checksum-error
+            template: checksum-error
+            dependencies: [task-checksum]
+            when: "'{{tasks.task-checksum.outputs.parameters.checksum_result}}' != 'ok'"
             # Delete the object after notifying the user.
           - name: task-delete
             template: delete
-            dependencies: [task-sjekksum-feil]
-            when: "'{{tasks.task-kontroll.outputs.parameters.checksum_result}}' != 'ok'"
+            dependencies: [task-checksum-error]
+            when: "'{{tasks.task-checksum.outputs.parameters.checksum_result}}' != 'ok'"
           - name: task-avscan
             template: avscan
-            dependencies: [task-kontroll]
-            when: "'{{tasks.task-kontroll.outputs.parameters.checksum_result}}' == 'ok'"
+            dependencies: [task-checksum]
+            when: "'{{tasks.task-checksum.outputs.parameters.checksum_result}}' == 'ok'"
           - name: task-unpack
             template: unpack
             dependencies: [task-avscan]
-            when: "'{{tasks.task-kontroll.outputs.parameters.checksum_result}}' == 'ok'"
+            when: "'{{tasks.task-checksum.outputs.parameters.checksum_result}}' == 'ok'"
           - name: task-arkade5
             template: arkade5
             dependencies: [task-unpack]
-            when: "'{{tasks.task-kontroll.outputs.parameters.checksum_result}}' == 'ok'"
+            when: "'{{tasks.task-checksum.outputs.parameters.checksum_result}}' == 'ok'"
           - name: task-logger
-            template: logger
+            template: final-logger
             dependencies: [task-arkade5]
-            when: "'{{tasks.task-kontroll.outputs.parameters.checksum_result}}' == 'ok'"
+            when: "'{{tasks.task-checksum.outputs.parameters.checksum_result}}' == 'ok'"
             arguments:
               artifacts:
                 - name: arkade-report
@@ -52,20 +59,20 @@ spec:
                 - name: unpacklog
                   from: "{{tasks.task-unpack.outputs.artifacts.unpacklog}}"
             # Done: send mail....
-          - name: task-nytt-arkiv
-            template: nytt-arkiv
+          - name: task-new-archive
+            template: new-archive
             dependencies: [task-logger]
-            when: "'{{tasks.task-kontroll.outputs.parameters.checksum_result}}' == 'ok'"
+            when: "'{{tasks.task-checksum.outputs.parameters.checksum_result}}' == 'ok'"
             arguments:
               artifacts:
                 - name: arkade-report
                   from: "{{tasks.task-arkade5.outputs.artifacts.arkade-report}}"
                 - name: avlog
                   from: "{{tasks.task-avscan.outputs.artifacts.avlog}}"
-                - name: unpack
+                - name: unpacklog
                   from: "{{tasks.task-unpack.outputs.artifacts.unpacklog}}"
 
-    - name: sjekksum-kontroll
+    - name: checksum-check
       container:
         image: arkivverket.azurecr.io/mottak/s3-checksum256
         imagePullPolicy: Always
@@ -92,10 +99,17 @@ spec:
           - name: checksum_result
             valueFrom:
               path: /tmp/result
+        artifacts:
+          - name: checksumlog
+            path: "/tmp/checksum.log"
+            archive:
+              none: {}
+      
+      
 
     # Kontainer som avviser et arkiv.
     # Her kan vi gjøre ting som å varsle arkivskaper om at jobben ikke avvist.
-    - name: sjekksum-feil
+    - name: checksum-error
       container:
         image: arkivverket.azurecr.io/mottak/mailer
 
@@ -231,7 +245,7 @@ spec:
             archive:
               none: {}
 
-    - name: logger
+    - name: final-logger
       inputs:
         artifacts:
           - name: arkade-report
@@ -239,7 +253,7 @@ spec:
           - name: avlog
             path: /tmp/avlog.txt
           - name: unpacklog
-            path: /tmp/unpack.log
+            path: /tmp/unpacklog.txt
       container:
         image: arkivverket.azurecr.io/mottak/artifact-logger
         imagePullPolicy: Always
@@ -247,7 +261,7 @@ spec:
           - name: BASEURL
             value: http://log-service.archive-log-service/
           - name: FILES
-            value: "/tmp/unpack.log;/tmp/avlog.txt;/tmp/arkade-report.html"
+            value: "/tmp/unpacklog.txt;/tmp/avlog.txt;/tmp/arkade-report.html"
           - name: UUID
             value: "{{workflow.parameters.UUID}}"
           - name: CONDITION
@@ -260,13 +274,42 @@ spec:
                 name: archive-log-service-apikey
                 key: secret-value
 
-    - name: nytt-arkiv
+    - name: checksum-logger
+      inputs:
+        artifacts:
+          - name: checksum-log
+            path: /tmp/checksum.log
+
+      container:
+        image: arkivverket.azurecr.io/mottak/artifact-logger
+        imagePullPolicy: Always
+        env:
+          - name: BASEURL
+            value: http://log-service.archive-log-service/
+          - name: FILES
+            value: "/tmp/checksum.log"
+          - name: UUID
+            value: "{{workflow.parameters.UUID}}"
+          - name: CONDITION
+            value: ok
+          - name: MESSAGE
+            value: "Checksum verdict"
+          - name: TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: archive-log-service-apikey
+                key: secret-value
+
+
+    - name: new-archive
       inputs:
         artifacts:
           - name: arkade-report
             path: /tmp/attachments/arkade-report.html
           - name: avlog
             path: /tmp/attachments/avlog.txt
+          - name: unpacklog
+            path: /tmp/attachments/unpacklog.txt
           - name: message
             path: /tmp/message
             raw:
