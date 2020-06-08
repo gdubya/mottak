@@ -29,10 +29,10 @@ spec:
             template: checksum-error
             dependencies: [task-checksum]
             when: "'{{tasks.task-checksum.outputs.parameters.checksum_result}}' != 'ok'"
-            # Delete the object after notifying the user.
+            # Delete the object while notifying the user.
           - name: task-delete
             template: delete
-            dependencies: [task-checksum-error]
+            dependencies: [task-checksum]
             when: "'{{tasks.task-checksum.outputs.parameters.checksum_result}}' != 'ok'"
           - name: task-avscan
             template: avscan
@@ -61,7 +61,7 @@ spec:
             # Done: send mail....
           - name: task-new-archive
             template: new-archive
-            dependencies: [task-logger]
+            dependencies: [task-arkade5]
             when: "'{{tasks.task-checksum.outputs.parameters.checksum_result}}' == 'ok'"
             arguments:
               artifacts:
@@ -93,7 +93,6 @@ spec:
               secretKeyRef:
                 name: storage-key
                 key: secret-value
-
       outputs:
         parameters:
           - name: checksum_result
