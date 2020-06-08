@@ -7,11 +7,13 @@ authors = ["Per Buer <per.buer@gmail.com>"]
 [tool.poetry.dependencies]
 python = "^3.7"
 azure-servicebus = "^0.50.2"
+requests = "^2.23.0"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.4.4"
 python-dotenv = "^0.12.0"
 autopep8 = "^1.5"
+pudb = "^2019.2"
 
 [build-system]
 requires = ["poetry>=0.12"]
