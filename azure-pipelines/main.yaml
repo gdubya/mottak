@@ -117,6 +117,15 @@ stages:
               containerRepo: ${{ variables.containerRepo }}
               containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
 
+      - job: BuildKicker
+        displayName: Build kicker (argo submission service)
+        steps:
+          - template: build.yaml
+            parameters:
+              appName: 'argo-kicker'
+              containerRepo: ${{ variables.containerRepo }}
+              containerRegServiceConn: ${{ variables.dockerRegistryServiceConnection }}
+
   - stage: Package
     displayName: Package Mottak as Helm Chart
     dependsOn: Build
