@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 from azure.servicebus import QueueClient, Message
 from azure.servicebus.common.constants import ReceiveSettleMode

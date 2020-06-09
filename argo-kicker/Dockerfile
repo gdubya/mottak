@@ -8,7 +8,14 @@ RUN pip install poetry
 RUN useradd --home-dir /opt mol
 WORKDIR /opt
 COPY kicker.py pyproject.toml poetry.lock /opt/
+COPY workflows /opt
 RUN chown -R mol /opt
 USER mol
 RUN poetry install
+
+# install the Argo CLI
+RUN wget https://github.com/argoproj/argo/releases/download/v2.8.0/argo-linux-amd64 && \
+    chmod +x argo-linux-amd64 && \
+    mv argo-linux-amd64 /usr/local/bin/argo
+
 CMD ["/usr/local/bin/poetry", "run", "/opt/kicker.py"]
