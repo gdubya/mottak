@@ -8,21 +8,21 @@ import string
 import subprocess
 # For python 3.6
 from subprocess import PIPE
-import random
 import re  # for parsing the DBSTRING
 
 import logging
 
-from dotenv import load_dotenv
-load_dotenv()
+from azure.servicebus import QueueClient, Message
+from azure.servicebus.common.constants import ReceiveSettleMode
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except:
+    print('dotenv not loaded')
 
 # Todo:
-# - validate filename (should be $uuid.tar)
 # - check that the uploader URL has not been tampered with
-
-
-# Allow for override (for dev purposes)
-WORKFLOW = os.getenv('WORKFLOW', default='/srv/argo-mottak-DAG.yaml')
+# - code can be cleaned up a bit.
 
 # Return codes.
 UUIDERROR = 1  # invalid UUID
@@ -111,54 +111,41 @@ def get_metadata(conn, iid):
 
 def update_db_with_objectname(conn, iid, objectname):
     cur = conn.cursor()
-    cur.execute("UPDATE invitations SET object_name = %s WHERE id = %s", (objectname, iid))
+    cur.execute(
+        "UPDATE invitations SET object_name = %s WHERE id = %s", (objectname, iid))
     if cur.rowcount != 1:
         raise('Invalid number of rows updated')
 
-
-
-def randomString(string_length=32):
-    """Generate a random string of fixed length """
-    letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for i in range(string_length))
-
-
-def create_param_file(tmpfile, metadata, data):
-    """ Create a metadata JSON-file for Argo to ingest.
-        This file contains the workflow parameters referenced in the workflow.
-    
-        Parameters:
-        -----------
-         tmpfile : str
-         metadata : dict
-         data : dict (data object given from tusd)
+def gather_params(metadata, data):
+    """ create dict with the relevant data from the supplied dicts
      """
     # define en workflow parameters
-    logging.debug('Creating PARAM file for ARGO')
-    with open(tmpfile, "w") as pfile:
-        print('UUID:', metadata['uuid'], file=pfile)
-        print('OBJECT:', data['Upload']['Storage']['Key'], file=pfile)
-        print('CHECKSUM:', metadata['checksum'], file=pfile)
-        print('ARCHIEVE_TYPE:', metadata['type'], file=pfile)
-        print('NAME:', metadata['name'],  file=pfile)
-        print('EMAIL:', metadata['email'], file=pfile)
-        print('INVITATIONID:', metadata['id'], file=pfile)
+    params = {
+        'UUID': metadata['uuid'],
+        'OBJECT': data['Upload']['Storage']['Key'],
+        'CHECKSUM': metadata['checksum'],
+        'ARCHIEVE_TYPE': metadata['type'],
+        'NAME': metadata['name'],
+        'EMAIL': metadata['email'],
+        'INVITATIONID': metadata['id']
+    }
+    return params
 
 
-def argo_submit(paramfile):
-    """ Submit a job to argo. Takes a YAML file as parameter """
-    argocmd = ["argo", "submit", "--parameter-file", paramfile, WORKFLOW]
-    logging.info(f"Argo cmd line: {argocmd}")
+def argo_submit(params):
+    """ Submit a job to argo. Takes a dict with parameters. """
 
-    submit = subprocess.run(argocmd, timeout=20, stdout=PIPE, stderr=PIPE)
-    # submit = subprocess.run("ls", timeout=20, stdout=PIPE, stderr=PIPE)   # stupid debugging hack to avoid spamming argo.
-    if not (submit.returncode == 0):
-        logging.error("Argo submit failed")
-        if submit.stderr:
-            logging.error(f"Stderr: {submit.stderr.decode('utf-8')}")
-        if submit.stdout:
-            logging.error(f"Stdout: {submit.stdout.decode('utf-8')}")
-        exit(ARGOERROR)
+    message = {
+        'action': 'argo-submit',
+        'params': params,
+    }
+    queue_client = QueueClient.from_connection_string(
+        os.getenv('AZ_SB_CON_KICKER'), os.getenv('AZ_SB_QUEUE') )
+
+    with queue_client.get_sender() as sender:
+        message = Message(json.dumps(message).encode('utf8'))
+        logging.info(f'Sending message: {message}')
+        ret = sender.send(message)
 
 
 ########################################################
@@ -167,21 +154,23 @@ def argo_submit(paramfile):
 
 # We use the same source for both pre-create and post-finish hook
 # This identifies it
+
+logging.basicConfig(level=os.getenv('LOGLEVEL', 'INFO'))
+
+
 my_name = os.path.basename(__file__)
+logging.info(f'hook running as {my_name}')
+tusd_data = read_tusd_event(step=my_name)
 
-data = read_tusd_event(step=my_name)
-param_file = '/tmp/argo-input-' + randomString()
-
-if (os.getenv('DEBUG')):
-    logging.basicConfig(level='DEBUG')
 
 if not (os.getenv('DBSTRING')):
     logging.error("DBSTRING environment variable not set")
     exit(USAGEERROR)
 
 try:
-    iid = data["Upload"]["MetaData"]["invitation_id"]
+    iid = tusd_data["Upload"]["MetaData"]["invitation_id"]
     logging.info(f"Invitation ID from JSON: {iid}")
+    # todo: Specify exception.
 except:
     logging.error(f"Could not find invitation_id in JSON: {iid}")
     exit(UNKNOWNIID)
@@ -191,7 +180,8 @@ connection = my_connect(create_db_access(os.getenv('DBSTRING')))
 
 metadata = get_metadata(connection, iid)
 if (metadata == None):
-    logging.error(f"Failed to fetch metadata for invitation {iid} - no invitation?")
+    logging.error(
+        f"Failed to fetch metadata for invitation {iid} - no invitation?")
     exit(UNKNOWNIID)
 
 uuid = metadata['uuid']
@@ -200,9 +190,10 @@ uuid = metadata['uuid']
 # This is the pre-create hook. The only concern here is to validate the UUID
 if (my_name == 'pre-create'):
     if not (uuid == metadata['uuid']):
-        logging.error('Unknown UUID')
+        logging.error(f'Unknown UUID (db said {metadata["uuid"]} - tusd gave us {uuid}')
         exit(UUIDERROR)
     else:
+        logging.info('Invitation ID verified.')
         exit(0)
 
 # We assume that we're the post-create hook and we create an input-file for argo
@@ -210,7 +201,7 @@ if (my_name == 'pre-create'):
 
 # Verify that we have a filename:
 try:
-    filename = data['Upload']['Storage']['Key']
+    filename = tusd_data['Upload']['Storage']['Key']
     logging.debug(f"File name (in objectstore) is {filename}")
 except:
     logging.error("Could not key/filename in JSON. Dumping JSON:")
@@ -218,16 +209,19 @@ except:
     exit(JSONERROR)
 
 try:
-    update_db_with_objectname(connection, iid, filename);
+    update_db_with_objectname(connection, iid, filename)
     logging.debug(f"Set object_name to {filename} for iid {iid} in database.")
 except Exception as e:
     logging.error("Error while updating database {e}")
     exit(DBERRROR)
 
 if ((metadata) and ('uuid' in metadata)):
-    create_param_file(param_file, metadata, data)
-    argo_submit(param_file)
-    os.remove(param_file)
+    # create_param_file(param_file, metadata, data)
+    # Create a param dict based on data from DB and tusd
+    params = gather_params(metadata, tusd_data)
+    # Submit it the service bus.
+    argo_submit(params)
+
     my_disconnect(connection)
 
     exit(0)
@@ -235,16 +229,3 @@ else:
     logging.error("Unknown UUID:" + uuid)
     exit(UUIDERROR)
 
-
-# Stick these things as k8s secrets and dump them into the input file.
-# Then kick off argo.
-
-
-# ENDPOINT: https://storage.googleapis.com
-# AWS_ACCESS_KEY_ID:
-# AWS_SECRET_ACCESS_KEY:
-# BUCKET: pilot-spool
-# OBJECT: 'uuid.tar'
-# CHECKSUM: 2afeec307b0573339b3292e27e7971b5b040a5d7e8f7432339cae2fcd0eb936a
-# REGION_NAME: us-east-1
-# ARCHIEVE_TYPE: noark5
