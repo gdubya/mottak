@@ -13,7 +13,8 @@ RUN apk add --no-cache \
 
 RUN pip3 install \
     psycopg2 \
-    python-dotenv
+    python-dotenv \
+    azure-servicebus
 
 # Note how use the same script for both hooks.
 COPY tusd-hooks/pre-create  /srv/tusd-hooks/pre-create
