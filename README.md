@@ -60,6 +60,7 @@ We assume the following secrets are in your vault.
 | mottakmvp-dsn              | PHP DB DSN (key/value)               | invitation, tusd-hooks                      |
 | storage-key                | What Azure gives you                 | s3-*, arkade, tusd                          |
 | storage-user               | What Azure gives you.                | s3-*, arkade, tusd                          |
+| mottak-sb-argo-kicker      | What Azure gives you                 | tusd-hooks, argo-kicker                     |
 
 ## How to make sure this thing works
 
