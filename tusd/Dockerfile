@@ -19,7 +19,6 @@ RUN pip3 install \
 # Note how use the same script for both hooks.
 COPY tusd-hooks/pre-create  /srv/tusd-hooks/pre-create
 COPY tusd-hooks/pre-create  /srv/tusd-hooks/post-finish
-COPY argo-mottak-DAG.yaml /srv/
 
 RUN wget https://github.com/argoproj/argo/releases/download/v2.8.0/argo-linux-amd64 && \
     chmod +x argo-linux-amd64 && \
