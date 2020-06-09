@@ -9,13 +9,15 @@ RUN apk add --no-cache \
     postgresql-client \
     postgresql-dev \
     python3 \
-    python3-dev
-
+    python3-dev \
+    libffi-dev \
+    make cmake \
+    g++ gcc
+RUN pip3 install --upgrade pip
 RUN pip3 install \
     psycopg2 \
     python-dotenv \
     azure-servicebus
-
 # Note how use the same script for both hooks.
 COPY tusd-hooks/pre-create  /srv/tusd-hooks/pre-create
 COPY tusd-hooks/pre-create  /srv/tusd-hooks/post-finish
@@ -27,6 +29,5 @@ RUN wget https://github.com/argoproj/argo/releases/download/v2.8.0/argo-linux-am
 WORKDIR /srv/tusd-data
 EXPOSE 1080
 COPY start.sh /srv/
-ENTRYPOINT ["/srv/start.sh"]
+CMD ["/srv/start.sh"]
 
-USER tusd
