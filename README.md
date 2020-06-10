@@ -10,7 +10,9 @@ The application allow someone to upload a [DIAS](https://www.arkivverket.no/forv
  - The executive offiser uses the invitation UI (runs in the invation container) to send an invitation to upload. This is sent through email, using mailgun.
  - The creator of the archive clicks the link. This invokes the [archive uploader](https://github.com/arkivverket/archive-uploader). The creator selects the created archive and uploads it.
  - The tusd container will first run the pre-upload hook an verify that there is a valid invitation for the upload.
- - Once the upload is complete the post-upload hook is run. This invokes Argo and fires off the Argo Workflow DAG.
+ - Once the upload is complete the post-upload hook is run. The hooks sends a message through the Azure Service Bus
+ - The argo kicker is listening on the bus and when recieving a message it creates a job (a file with workflow parameters) and submits to Argo
+ - This invokes Argo and fires off the Argo Workflow DAG.
  - The Argo Workflow will:
    - Verify the checksum of the archive
      - If the checksum doesn't match the archive is deleted and the creator is notified
