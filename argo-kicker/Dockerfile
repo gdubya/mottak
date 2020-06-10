@@ -9,7 +9,7 @@ RUN useradd --home-dir /opt mol
 WORKDIR /opt
 COPY start.sh kicker.py pyproject.toml poetry.lock /opt/
 RUN mkdir /opt/workflows
-COPY workflows/*.yaml /opt/
+COPY workflows/*.yaml /opt/workflows/
 RUN chown -R mol /opt
 # USER mol
 RUN poetry install
