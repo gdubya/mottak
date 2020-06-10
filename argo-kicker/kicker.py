@@ -22,6 +22,7 @@ MQ_SHUTDOWN = False # if True we allow the MQ to shutdown the process by sending
 
 UUIDERROR = 10
 ARGOERROR = 11
+SBERROR = 12
 
 
 def create_param_file(params):
@@ -56,15 +57,24 @@ def argo_submit(workflowfile,params):
 
 
 def runq():
-    queue_client = QueueClient.from_connection_string(
-        os.getenv('AZ_SB_CON_KICKER'), os.getenv('AZ_SB_QUEUE'))
+    conn_str = os.getenv('AZ_SB_CON_KICKER')
+    queue = os.getenv('AZ_SB_QUEUE')
+    try:
+        queue_client = QueueClient.from_connection_string(
+            conn_str, queue)
+    except Exception as e:
+        logging.error(f'Failed to connect to "{queue}" using "{conn_str}"')
+        logging.error(e)
+        exit(SBERROR)
+
+    logging.info('Service bus connection to {queue} is OK')
 
     keep_running = True
     with queue_client.get_receiver() as queue_receiver:
         while keep_running:
             messages = queue_receiver.fetch_next(timeout=3)
             for message in messages:
-                print('Got something!')
+                logging.debug('Got a message on the service bus')
                 # message is a generator. fetch the content, decode it and concat it:
                 msg = ''.join(map(lambda x: x.decode('utf-8'), message.body))
                 parsed = json.loads(msg)
