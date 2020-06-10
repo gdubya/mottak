@@ -8,7 +8,8 @@ RUN pip install poetry
 RUN useradd --home-dir /opt mol
 WORKDIR /opt
 COPY start.sh kicker.py pyproject.toml poetry.lock /opt/
-COPY workflows /opt
+RUN mkdir /opt/workflows
+COPY workflows/*.yaml /opt/
 RUN chown -R mol /opt
 # USER mol
 RUN poetry install
