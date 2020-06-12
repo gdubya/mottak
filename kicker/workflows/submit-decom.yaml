@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: decom-
+spec:
+  entrypoint: decom
+  templates:
+    - name: decom
+      dag:
+        tasks:
+          - name: create-fileshare
+            template: create-storage
+          - name: create-objectstore
+            template: create-storage
+          - name: copy-archive
+            template: azcopy
+            dependencies: [create-fileshare, create-storage ]
+          - name: terraform
+            template: terraform
+            dependencies: [azcopy]
+          - name: notify-user
+            
+    - name: checksum-check
+    container:
+        image: arkivverket.azurecr.io/mottak/s3-checksum256
+        imagePullPolicy: Always
+        env:
+          - name: OBJECT
+            value: "{{workflow.parameters.OBJECT}}"
+          - name: CHECKSUM
+            value: "{{workflow.parameters.CHECKSUM}}"
+          - name: OBJECTSTORE
+            value: abs
+          - name: BUCKET
+            value: "mottak"
+          - name: AZURE_ACCOUNT
+            value: mottakmvp
+          - name: AZURE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: storage-key
+                key: secret-value
+      outputs:
+        parameters:
+          - name: checksum_result
+            valueFrom:
+              path: /tmp/result
+        artifacts:
+          - name: checksumlog
+            path: "/tmp/checksum.log"
+            archive:
+              none: {}
+      
+      
+      
