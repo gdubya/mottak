@@ -8,26 +8,26 @@ The application allow someone to upload a [DIAS](https://www.arkivverket.no/forv
 
 The following containers are to be scheduled as regular containers that would be running continiously:
 
-invitation-deployment
- : PHP container, written by freost. It runs the invitation UI. It gives an overview over the current archives being processed and can trigger actions.
+ - invitation-deployment
+   - PHP container, written by freost. It runs the invitation UI. It gives an overview over the current archives being processed and can trigger actions.
  
- tusd-deployment
- : tusd container. It runs tusd which is the backend component of the uploader. Upon successful upload it notifies a message queue that a new archive is ready for processing.
+ - tusd-deployment
+    - tusd container. It runs tusd which is the backend component of the uploader. Upon successful upload it notifies a message queue that a new archive is ready for processing.
 
- kicker
- : this container listens for messages on the message queue. when getting a message that a new archive is ready it kicks off the Argo workflow.
+ - kicker
+   - this container listens for messages on the message queue. when getting a message that a new archive is ready it kicks off the Argo workflow.
 
- minio
- : minio serves up a local objectstore that is used by argo to store artifacts. So, during processing artifacts are being created and these are stored in minio. Argo doesn't support Azure objectstores nativly.
+ - minio
+    - minio serves up a local objectstore that is used by argo to store artifacts. So, during processing artifacts are being created and these are stored in minio. Argo doesn't support Azure objectstores nativly.
 
- nginx
- : nginx is our ingress controller and handles load balacing of incomming HTTP traffic to invitation and tusd. there is also a tiny nginx instance which can serve up a web page if this should be needed.
+ - nginx
+   - nginx is our ingress controller and handles load balacing of incomming HTTP traffic to invitation and tusd. there is   also a tiny nginx instance which can serve up a web page if this should be needed.
 
- argo-server
- : this container runs the Argo backend API used to interact with Argo
+ - argo-server
+  - this container runs the Argo backend API used to interact with Argo
 
- argo-controller
- : the k8s controller for Argo
+ - argo-controller
+  - the k8s controller for Argo
 
 
 
