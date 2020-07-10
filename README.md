@@ -24,10 +24,10 @@ The following containers are to be scheduled as regular containers that would be
    - nginx is our ingress controller and handles load balacing of incomming HTTP traffic to invitation and tusd. there is   also a tiny nginx instance which can serve up a web page if this should be needed.
 
  - argo-server
-  - this container runs the Argo backend API used to interact with Argo
+   - this container runs the Argo backend API used to interact with Argo
 
  - argo-controller
-  - the k8s controller for Argo
+   - the k8s controller for Argo
 
 
 
